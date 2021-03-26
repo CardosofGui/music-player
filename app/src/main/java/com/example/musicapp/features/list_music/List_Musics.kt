@@ -2,22 +2,25 @@ package com.example.musicapp.features.list_music
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.CodeBoy.MediaFacer.AudioGet
+import com.CodeBoy.MediaFacer.MediaFacer
+import com.CodeBoy.MediaFacer.mediaHolders.audioContent
 import com.example.musicapp.R
 import com.example.musicapp.features.list_music.adapter.MusicAdapter
 import com.example.musicapp.features.music.MainActivity
 import com.example.musicapp.model.Music
 import com.example.musicapp.singleton.MusicSingleton
 import kotlinx.android.synthetic.main.activity_list__musics.*
-import java.lang.Exception
+import java.io.File
+import java.util.LinkedHashSet
 
 class List_Musics : AppCompatActivity() {
 
@@ -50,39 +53,18 @@ class List_Musics : AppCompatActivity() {
         startActivity(intent)
     }
 
-    // Recupera as musicas
-    fun getMusic(){
-        val contentResolver = contentResolver
-        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        val cursor = contentResolver.query(uri, null, null, null, null)
 
-        if(cursor != null && cursor.moveToFirst()){
-            val songTitle = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
-            val songArtist = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
-            val songLocation = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
-            val songDuration = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+    fun getMusic2(){
+        MusicSingleton.listaMusicas = MediaFacer
+            .withAudioContex(this)
+            .getAllAudioContent(AudioGet.externalContentUri)
 
-            do {
-                val currentTitle = cursor.getString(songTitle) ?: "erro"
-                val currentArtist = cursor.getString(songArtist) ?: "erro"
-                val currentSongLocation = cursor.getString(songLocation) ?: "erro"
-                val currentSongDuration = cursor.getString(songDuration) ?: "erro"
-
-                if(currentTitle != "erro" && currentArtist != "erro" && currentSongLocation != "erro" && currentSongDuration != "erro"){
-                    val musica = Music(
-                        currentTitle,
-                        currentArtist,
-                        currentSongLocation,
-                        currentSongDuration
-                    )
-
-                    MusicSingleton.listaMusicas.add(musica)
-                }
-            } while(cursor.moveToNext())
-        }
+        val removeDuplicates = MusicSingleton.listaMusicas.distinctBy { it.title }
+        MusicSingleton.listaMusicas = removeDuplicates as ArrayList<audioContent>
 
         initRecyclerView()
     }
+
 
     // Exibe o request
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -93,7 +75,12 @@ class List_Musics : AppCompatActivity() {
                         if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
 
                                 Toast.makeText(this, "Permissao aceita", Toast.LENGTH_SHORT).show()
-                                getMusic()
+                            try {
+                                getMusic2()
+
+                            }catch (e : Exception){
+                                Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
+                            }
 
                         }else{
                             finish()
@@ -118,7 +105,12 @@ class List_Musics : AppCompatActivity() {
                 }
             }else{
                 Toast.makeText(this, "Permissao aceita", Toast.LENGTH_SHORT).show()
-                getMusic()
+                try {
+                    getMusic2()
+
+                }catch (e : Exception){
+                    Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
+                }
             }
         }catch (e : Exception){
             Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
