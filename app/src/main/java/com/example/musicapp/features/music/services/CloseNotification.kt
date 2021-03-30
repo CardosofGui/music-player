@@ -17,10 +17,6 @@ class CloseNotification : Service() {
         nMgr.cancelAll()
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        return super.onStartCommand(intent, flags, startId)
-    }
-
     @Nullable
     override fun onBind(intent: Intent): IBinder? {
         return null

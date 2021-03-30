@@ -43,11 +43,11 @@ class MusicApplication : Application(){
 
     private fun createNotifyChannel() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            var notificationChannel = NotificationChannel(CHANNEL_ID_1, "Channel (1)", NotificationManager.IMPORTANCE_HIGH)
+            var notificationChannel = NotificationChannel(CHANNEL_ID_1, "Channel (1)", NotificationManager.IMPORTANCE_LOW)
             notificationChannel.description = "Channel 1 Description"
             notificationChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
 
-            val notificationChannel2 = NotificationChannel(CHANNEL_ID_2, "Channel (2)", NotificationManager.IMPORTANCE_HIGH)
+            val notificationChannel2 = NotificationChannel(CHANNEL_ID_2, "Channel (2)", NotificationManager.IMPORTANCE_LOW)
             notificationChannel2.description = "Channel 2 Description"
             notificationChannel2.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
 
