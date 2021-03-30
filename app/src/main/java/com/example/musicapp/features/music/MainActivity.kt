@@ -129,7 +129,6 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
     }
 
     private fun setClicks() {
-        val animationClickStart = AnimationUtils.loadAnimation(this, R.anim.animation)
         val animationTransitionRight =
             AnimationUtils.loadAnimation(this, R.anim.animation_transition_right)
         val animationTransitionLeft =
