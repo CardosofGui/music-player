@@ -23,7 +23,8 @@ import java.io.ByteArrayOutputStream
 
 class MusicAdapter(
     val context: Context,
-    val onClickMusic: ((Int) -> Unit)
+    val onClickMusic: ((Int) -> Unit),
+    val onFavoriteMusic: ((Int) -> Unit)
 ) : RecyclerView.Adapter<musicViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): musicViewHolder {
@@ -37,14 +38,15 @@ class MusicAdapter(
         val music = MusicSingleton.listaMusicas[position]
         val view = holder.itemView
 
-        val artUri : Uri? = MusicSingleton.listaMusicas[position].art_uri
+        val artUri : Uri? = Uri.parse(MusicSingleton.listaMusicas[position].imagem)
         view.imgMusicCard.setImageURI(artUri)
+
         if(view.imgMusicCard.drawable == null) view.imgMusicCard.setImageResource(R.drawable.img_music)
 
         val animation = AnimationUtils.loadAnimation(context, R.anim.animation)
 
-        view.txtNomeMusicaCard.text = music.title
-        view.txtNomeArtistaCard.text = music.artist
+        view.txtNomeMusicaCard.text = music.nomeMusica
+        view.txtNomeArtistaCard.text = music.nomeArtista
 
         view.cardMusic.setOnClickListener {
             view.cardMusic.startAnimation(animation)
@@ -52,6 +54,16 @@ class MusicAdapter(
         }
 
         view.btnFavorite.setOnClickListener {
+            if(!music.favorito){
+                view.btnFavorite.setImageResource(R.drawable.ic_baseline_star_24)
+            }else{
+                view.btnFavorite.setImageResource(R.drawable.ic_baseline_star_border_24)
+            }
+
+            onFavoriteMusic(position)
+        }
+
+        if(music.favorito){
             view.btnFavorite.setImageResource(R.drawable.ic_baseline_star_24)
         }
     }

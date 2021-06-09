@@ -14,6 +14,6 @@ class Splash_Screen : AppCompatActivity() {
         Handler().postDelayed(Runnable {
             startActivity(Intent(this, List_Musics::class.java))
             finish()
-        }, 1500)
+        }, 800)
     }
 }

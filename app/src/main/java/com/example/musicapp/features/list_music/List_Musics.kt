@@ -4,10 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
@@ -40,12 +37,19 @@ import com.example.musicapp.features.music.viewModel.MainViewModel
 import com.example.musicapp.model.ActionClick
 import com.example.musicapp.model.Music
 import com.example.musicapp.singleton.MusicSingleton
+import com.example.musicapp.singleton.MusicSingleton.listaMusicas
 import com.example.musicapp.singleton.MusicSingleton.tempoPause
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_list__musics.*
+import org.json.JSONArray
 import java.io.File
 import java.util.LinkedHashSet
 
 class List_Musics : AppCompatActivity() {
+
+    lateinit var SHARED_PREFERENCES_MUSIC: SharedPreferences
+    lateinit var SHARED_PREFERENCES_MUSIC_EDITOR: SharedPreferences.Editor
 
     var myPermissionRequest = 1
 
@@ -55,6 +59,8 @@ class List_Musics : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list__musics)
 
+        SHARED_PREFERENCES_MUSIC = getSharedPreferences(SHARED_MAIN, MODE_PRIVATE)
+        SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
         verificarPermissao()
         initToolbar("Músicas")
@@ -66,7 +72,7 @@ class List_Musics : AppCompatActivity() {
     }
 
     private fun initRecyclerView() {
-        adapter = MusicAdapter(this) { onClickMusic(it) }
+        adapter = MusicAdapter(this, {onClickMusic(it)}, { favoriteMusic(it) })
         recyclerViewMusics.layoutManager = LinearLayoutManager(this)
         recyclerViewMusics.adapter = adapter
     }
@@ -77,15 +83,55 @@ class List_Musics : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun getMusic2(){
-        MusicSingleton.listaMusicas = MediaFacer
+    fun getMusic2() {
+        MediaFacer
             .withAudioContex(this)
-            .getAllAudioContent(AudioGet.externalContentUri)
+            .getAllAudioContent(AudioGet.externalContentUri).forEach {
+                listaMusicas.add(
+                    Music(
+                        it.title,
+                        it.artist,
+                        it.assetFileStringUri,
+                        it.duration,
+                        false,
+                        it.art_uri.toString()
+                    )
+                )
+            }
 
-        val removeDuplicates = MusicSingleton.listaMusicas.distinctBy { it.title }
-        MusicSingleton.listaMusicas = removeDuplicates as ArrayList<audioContent>
+        val removeDuplicates = listaMusicas.distinctBy { it.diretorio }
+        listaMusicas = removeDuplicates as ArrayList<Music>
+
+        val gson = Gson()
+        val listMusics = SHARED_PREFERENCES_MUSIC.getString(SHARED_LIST_MUSIC, "")
+
+
+        if(!listMusics.isNullOrEmpty()){
+            val verificarFavoritos = gson.fromJson<ArrayList<Music>>(listMusics, object : TypeToken<ArrayList<Music>>(){}.type)
+
+            var index = 0
+
+            listaMusicas.forEach {
+                if(it.diretorio == verificarFavoritos[index].diretorio && verificarFavoritos[index].favorito){
+                    it.favoritarMusic()
+                }
+                index++
+            }
+        }
+
+
+
 
         initRecyclerView()
+    }
+
+    fun favoriteMusic(it : Int){
+        listaMusicas[it].favoritarMusic()
+
+        val gson = Gson()
+        val json = gson.toJson(listaMusicas)
+
+        SHARED_PREFERENCES_MUSIC_EDITOR.putString(SHARED_LIST_MUSIC, json).apply()
     }
 
     // Exibe o request
@@ -141,5 +187,8 @@ class List_Musics : AppCompatActivity() {
 
 
 
-
+    companion object{
+        const val SHARED_MAIN = "MUSICS"
+        const val SHARED_LIST_MUSIC = "LIST_MUSICS"
+    }
 }

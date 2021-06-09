@@ -12,9 +12,9 @@ class MainViewModel : ViewModel() {
     var fotoMusica = MutableLiveData<Uri?>()
 
     fun atualizarDadosMusica(){
-        nomeArtista.value = MusicSingleton.listaMusicas[MusicSingleton.index].artist
-        nomeMusica.value = MusicSingleton.listaMusicas[MusicSingleton.index].title
-        fotoMusica.value = MusicSingleton.listaMusicas[MusicSingleton.index].art_uri
+        nomeArtista.value = MusicSingleton.listaMusicas[MusicSingleton.index].nomeArtista
+        nomeMusica.value = MusicSingleton.listaMusicas[MusicSingleton.index].nomeMusica
+        fotoMusica.value = Uri.parse(MusicSingleton.listaMusicas[MusicSingleton.index].imagem)
         musicaDuration.value = MusicSingleton.listaMusicas[MusicSingleton.index].duration.toInt()
     }
 }

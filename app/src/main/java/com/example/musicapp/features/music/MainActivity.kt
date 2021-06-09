@@ -238,7 +238,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
             mediaPlayer.pause()
             showNotifications(R.drawable.ic_baseline_play_circle_filled_24)
         }else{
-            val uri = Uri.parse(listaMusicas[index].assetFileStringUri)
+            val uri = Uri.parse(listaMusicas[index].diretorio)
             mediaPlayer = MediaPlayer.create(baseContext, uri)
             mediaPlayer.seekTo(tempoPause*1000)
             mediaPlayer.start()
@@ -266,7 +266,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
             mediaPlayer.release()
         }
 
-        val uri = Uri.parse(listaMusicas[index].assetFileStringUri)
+        val uri = Uri.parse(listaMusicas[index].diretorio)
         mediaPlayer = MediaPlayer.create(this, uri)
         mediaPlayer.start()
         showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
@@ -293,7 +293,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
             mediaPlayer.release()
         }
 
-        val uri = Uri.parse(listaMusicas[index].assetFileStringUri)
+        val uri = Uri.parse(listaMusicas[index].diretorio)
         mediaPlayer = MediaPlayer.create(this, uri)
         mediaPlayer.start()
         showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
@@ -322,7 +322,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
 
         val bitmap: Bitmap?
         bitmap = try {
-            val picture = listaMusicas[index].art_uri
+            val picture = Uri.parse(listaMusicas[index].imagem)
             MediaStore.Images.Media.getBitmap(this.contentResolver, picture)
         }catch (e : Exception){
             val defaultPicture : Drawable? = getDrawable(R.drawable.img_music)
@@ -330,8 +330,8 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
             bitmapDraw
         }
 
-        customNotificationStyle.setTextViewText(R.id.txtTitleMusic, musicaTocando.title)
-        customNotificationStyle.setTextViewText(R.id.txtTitleArtist, musicaTocando.artist)
+        customNotificationStyle.setTextViewText(R.id.txtTitleMusic, musicaTocando.nomeMusica)
+        customNotificationStyle.setTextViewText(R.id.txtTitleArtist, musicaTocando.nomeArtista)
         customNotificationStyle.setImageViewBitmap(R.id.imgMusicImageNotification, bitmap)
 
         customNotificationStyle.setOnClickPendingIntent(R.id.btnPreviusMusic, prevPendingIntent)
