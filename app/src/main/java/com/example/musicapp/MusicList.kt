@@ -75,13 +75,17 @@ class MusicList : Fragment() {
     }
 
     private fun onClickMusic(it: Int) {
+        val gson = Gson()
+        val jsonPlaylist = gson.toJson(MusicSingleton.listaMusicas)
+
         val intent = Intent(this.context, MainActivity::class.java)
         intent.putExtra("MUSICA_SELECIONADA", it)
+        intent.putExtra("PLAYLIST-SELECIONADA", jsonPlaylist)
         startActivity(intent)
     }
 
     private fun initRecyclerView() {
-        adapter = MusicAdapter(requireActivity(), {onClickMusic(it)}, { favoriteMusic(it) })
+        adapter = MusicAdapter(requireActivity(), {onClickMusic(it)}, { favoriteMusic(it) }, MusicSingleton.listaMusicas)
         recyclerViewMusics.layoutManager = LinearLayoutManager(this.context)
         recyclerViewMusics.adapter = adapter
     }

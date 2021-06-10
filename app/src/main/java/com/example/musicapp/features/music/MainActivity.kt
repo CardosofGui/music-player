@@ -38,12 +38,15 @@ import com.example.musicapp.features.list_music.Splash_Screen
 import com.example.musicapp.features.music.services.NotificationReceiver
 import com.example.musicapp.features.music.viewModel.MainViewModel
 import com.example.musicapp.model.ActionClick
+import com.example.musicapp.model.Music
 import com.example.musicapp.singleton.MusicSingleton
 import com.example.musicapp.singleton.MusicSingleton.index
 import com.example.musicapp.singleton.MusicSingleton.listaMusicas
 import com.example.musicapp.singleton.MusicSingleton.repeatMusic
 import com.example.musicapp.singleton.MusicSingleton.shuffleOn
 import com.example.musicapp.singleton.MusicSingleton.tempoPause
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.Exception
 
@@ -55,6 +58,8 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
 
     var handler: Handler = Handler()
     var musicService: MusicService? = null
+
+    lateinit var playlistAtual : ArrayList<Music>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,8 +94,12 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
     }
 
     private fun initDados() {
+        val gson = Gson()
+        playlistAtual = gson.fromJson(intent.getStringExtra("PLAYLIST-SELECIONADA"), object : TypeToken<ArrayList<Music>>(){}.type)
+
         index = intent.getIntExtra("MUSICA_SELECIONADA", index)
 
+        mMainViewModel.setListaMusica(playlistAtual)
         mMainViewModel.nomeArtista.observe(this, Observer {
             txtArtista.text = it
         })
@@ -238,7 +247,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
             mediaPlayer.pause()
             showNotifications(R.drawable.ic_baseline_play_circle_filled_24)
         }else{
-            val uri = Uri.parse(listaMusicas[index].diretorio)
+            val uri = Uri.parse(playlistAtual[index].diretorio)
             mediaPlayer = MediaPlayer.create(baseContext, uri)
             mediaPlayer.seekTo(tempoPause*1000)
             mediaPlayer.start()
@@ -251,11 +260,11 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
     override fun nextMusic() {
         if(!repeatMusic){
             if(shuffleOn){
-                index = (0 until listaMusicas.size).random()
+                index = (0 until playlistAtual.size).random()
             }else{
                 index++
 
-                if(index >= listaMusicas.size){
+                if(index >= playlistAtual.size){
                     index = 0
                 }
             }
@@ -266,7 +275,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
             mediaPlayer.release()
         }
 
-        val uri = Uri.parse(listaMusicas[index].diretorio)
+        val uri = Uri.parse(playlistAtual[index].diretorio)
         mediaPlayer = MediaPlayer.create(this, uri)
         mediaPlayer.start()
         showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
@@ -277,7 +286,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
     override fun previousMusic() {
         if(!repeatMusic){
             if(shuffleOn){
-                index = (0 until listaMusicas.size).random()
+                index = (0 until playlistAtual.size).random()
             }else{
                 index++
 
@@ -293,7 +302,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
             mediaPlayer.release()
         }
 
-        val uri = Uri.parse(listaMusicas[index].diretorio)
+        val uri = Uri.parse(playlistAtual[index].diretorio)
         mediaPlayer = MediaPlayer.create(this, uri)
         mediaPlayer.start()
         showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
@@ -305,7 +314,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
     @SuppressLint("UseCompatLoadingForDrawables", "WrongConstant")
     fun showNotifications(playPauseBtn : Int){
         val customNotificationStyle = RemoteViews(packageName, R.layout.custom_notification)
-        val musicaTocando = listaMusicas[index]
+        val musicaTocando = playlistAtual[index]
 
         val intent = Intent(this, MainActivity::class.java)
         val contentIntent = PendingIntent.getActivity(this, 0, intent, FLAG_ACTIVITY_CLEAR_TOP)
@@ -322,7 +331,7 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
 
         val bitmap: Bitmap?
         bitmap = try {
-            val picture = Uri.parse(listaMusicas[index].imagem)
+            val picture = Uri.parse(playlistAtual[index].imagem)
             MediaStore.Images.Media.getBitmap(this.contentResolver, picture)
         }catch (e : Exception){
             val defaultPicture : Drawable? = getDrawable(R.drawable.img_music)

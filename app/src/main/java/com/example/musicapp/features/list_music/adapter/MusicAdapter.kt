@@ -24,7 +24,8 @@ import java.io.ByteArrayOutputStream
 class MusicAdapter(
     val context: Context,
     val onClickMusic: ((Int) -> Unit),
-    val onFavoriteMusic: ((Int) -> Unit)
+    val onFavoriteMusic: ((Int) -> Unit),
+    val listaMusicas : ArrayList<Music>
 ) : RecyclerView.Adapter<musicViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): musicViewHolder {
@@ -32,13 +33,13 @@ class MusicAdapter(
         return musicViewHolder(view)
     }
 
-    override fun getItemCount(): Int = MusicSingleton.listaMusicas.size
+    override fun getItemCount(): Int = listaMusicas.size
 
     override fun onBindViewHolder(holder: musicViewHolder, position: Int) {
-        val music = MusicSingleton.listaMusicas[position]
+        val music = listaMusicas[position]
         val view = holder.itemView
 
-        val artUri : Uri? = Uri.parse(MusicSingleton.listaMusicas[position].imagem)
+        val artUri : Uri? = Uri.parse(listaMusicas[position].imagem)
         view.imgMusicCard.setImageURI(artUri)
 
         if(view.imgMusicCard.drawable == null) view.imgMusicCard.setImageResource(R.drawable.img_music)
@@ -60,7 +61,7 @@ class MusicAdapter(
                 view.btnFavorite.setImageResource(R.drawable.ic_baseline_star_border_24)
             }
 
-            onFavoriteMusic(position)
+            onFavoriteMusic(music.position ?: 0)
         }
 
         if(music.favorito){

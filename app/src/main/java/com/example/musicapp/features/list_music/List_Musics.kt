@@ -105,13 +105,13 @@ class List_Musics : AppCompatActivity() {
         if(!listMusics.isNullOrEmpty()){
             val verificarFavoritos = gson.fromJson<ArrayList<Music>>(listMusics, object : TypeToken<ArrayList<Music>>(){}.type)
 
-            var index = 0
 
-            listaMusicas.forEach {
-                if(it.diretorio == verificarFavoritos[index].diretorio && verificarFavoritos[index].favorito){
-                    it.favoritarMusic()
+            listaMusicas.forEachIndexed { index, music ->
+                if(music.diretorio == verificarFavoritos[index].diretorio && verificarFavoritos[index].favorito){
+                    music.favoritarMusic()
                 }
-                index++
+
+                music.setPosition(index)
             }
         }
     }
