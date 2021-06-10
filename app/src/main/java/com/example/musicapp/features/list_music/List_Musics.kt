@@ -23,6 +23,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.findNavController
+import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.CodeBoy.MediaFacer.AudioGet
 import com.CodeBoy.MediaFacer.MediaFacer
@@ -39,6 +41,7 @@ import com.example.musicapp.model.Music
 import com.example.musicapp.singleton.MusicSingleton
 import com.example.musicapp.singleton.MusicSingleton.listaMusicas
 import com.example.musicapp.singleton.MusicSingleton.tempoPause
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_list__musics.*
@@ -53,8 +56,6 @@ class List_Musics : AppCompatActivity() {
 
     var myPermissionRequest = 1
 
-    lateinit var adapter : MusicAdapter
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list__musics)
@@ -63,25 +64,20 @@ class List_Musics : AppCompatActivity() {
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
         verificarPermissao()
-        initToolbar("Músicas")
+
+        val navController = findNavController(R.id.fragment_container)
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+
+        bottomNav.setupWithNavController(navController)
+        //initToolbar("Músicas")
     }
 
+    /*
     private fun initToolbar(title : String) {
         toolbar.title = title
         setSupportActionBar(toolbar)
     }
-
-    private fun initRecyclerView() {
-        adapter = MusicAdapter(this, {onClickMusic(it)}, { favoriteMusic(it) })
-        recyclerViewMusics.layoutManager = LinearLayoutManager(this)
-        recyclerViewMusics.adapter = adapter
-    }
-
-    private fun onClickMusic(it: Int) {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.putExtra("MUSICA_SELECIONADA", it)
-        startActivity(intent)
-    }
+     */
 
     fun getMusic2() {
         MediaFacer
@@ -118,20 +114,6 @@ class List_Musics : AppCompatActivity() {
                 index++
             }
         }
-
-
-
-
-        initRecyclerView()
-    }
-
-    fun favoriteMusic(it : Int){
-        listaMusicas[it].favoritarMusic()
-
-        val gson = Gson()
-        val json = gson.toJson(listaMusicas)
-
-        SHARED_PREFERENCES_MUSIC_EDITOR.putString(SHARED_LIST_MUSIC, json).apply()
     }
 
     // Exibe o request

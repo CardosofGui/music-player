@@ -8,22 +8,25 @@
     android:orientation="vertical"
     tools:context=".features.list_music.List_Musics">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+
+    <fragment
+        android:id="@+id/fragment_container"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#121212"
-        app:titleTextColor="@color/white"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/navigation_fragment" />
 
-    <FrameLayout
+    <com.google.android.material.bottomnavigation.BottomNavigationView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewMusics"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </FrameLayout>
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        app:menu="@menu/menu_navigation"
+        android:background="#2B2B2B"
+        android:id="@+id/bottomNav"
+        app:itemTextColor="@color/white"
+        app:itemIconTint="@color/white"
+        />
 
 </LinearLayout>
