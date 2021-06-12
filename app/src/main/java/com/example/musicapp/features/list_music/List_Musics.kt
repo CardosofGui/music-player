@@ -1,53 +1,22 @@
 package com.example.musicapp.features.list_music
 
-import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.*
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
-import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.IBinder
-import android.provider.MediaStore
-import android.util.Log
-import android.widget.RemoteViews
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.CodeBoy.MediaFacer.AudioGet
 import com.CodeBoy.MediaFacer.MediaFacer
-import com.CodeBoy.MediaFacer.mediaHolders.audioContent
 import com.example.musicapp.R
-import com.example.musicapp.application.MusicApplication
-import com.example.musicapp.features.list_music.adapter.MusicAdapter
-import com.example.musicapp.features.music.MainActivity
-import com.example.musicapp.features.music.services.MusicService
-import com.example.musicapp.features.music.services.NotificationReceiver
-import com.example.musicapp.features.music.viewModel.MainViewModel
-import com.example.musicapp.model.ActionClick
 import com.example.musicapp.model.Music
-import com.example.musicapp.singleton.MusicSingleton
 import com.example.musicapp.singleton.MusicSingleton.listaMusicas
-import com.example.musicapp.singleton.MusicSingleton.tempoPause
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.android.synthetic.main.activity_list__musics.*
-import org.json.JSONArray
-import java.io.File
-import java.util.LinkedHashSet
 
 class List_Musics : AppCompatActivity() {
 
@@ -80,58 +49,55 @@ class List_Musics : AppCompatActivity() {
      */
 
     fun getMusic2() {
-        MediaFacer
-            .withAudioContex(this)
-            .getAllAudioContent(AudioGet.externalContentUri).forEach {
-                listaMusicas.add(
-                    Music(
-                        it.title,
-                        it.artist,
-                        it.assetFileStringUri,
-                        it.duration,
-                        false,
-                        it.art_uri.toString()
+            MediaFacer
+                .withAudioContex(this)
+                .getAllAudioContent(AudioGet.externalContentUri).forEachIndexed { index, music ->
+                    listaMusicas.add(
+                        Music(
+                            music.title,
+                            music.artist,
+                            music.assetFileStringUri,
+                            music.duration,
+                            false,
+                            music.art_uri.toString(),
+                            index
+                        )
                     )
-                )
-            }
-
-        val removeDuplicates = listaMusicas.distinctBy { it.diretorio }
-        listaMusicas = removeDuplicates as ArrayList<Music>
-
-        val gson = Gson()
-        val listMusics = SHARED_PREFERENCES_MUSIC.getString(SHARED_LIST_MUSIC, "")
-
-
-        if(!listMusics.isNullOrEmpty()){
-            val verificarFavoritos = gson.fromJson<ArrayList<Music>>(listMusics, object : TypeToken<ArrayList<Music>>(){}.type)
-
-
-            listaMusicas.forEachIndexed { index, music ->
-                if(music.diretorio == verificarFavoritos[index].diretorio && verificarFavoritos[index].favorito){
-                    music.favoritarMusic()
                 }
 
-                music.setPosition(index)
+            val removeDuplicates = listaMusicas.distinctBy { it.diretorio }
+            listaMusicas = removeDuplicates as ArrayList<Music>
+
+            val gson = Gson()
+            val listMusics = SHARED_PREFERENCES_MUSIC.getString(SHARED_LIST_MUSIC, "")
+
+
+            if(!listMusics.isNullOrEmpty()){
+                val verificarFavoritos = gson.fromJson<ArrayList<Music>>(listMusics, object : TypeToken<ArrayList<Music>>(){}.type)
+
+
+                listaMusicas.forEachIndexed { index, music ->
+                    if(music.diretorio == verificarFavoritos[index].diretorio && verificarFavoritos[index].favorito){
+                        music.favoritarMusic()
+                    }
+                }
             }
-        }
     }
 
     // Exibe o request
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         try {
             when(requestCode){
                 myPermissionRequest -> {
                     if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                         if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
-
                                 Toast.makeText(this, "Permissao aceita", Toast.LENGTH_SHORT).show()
                             try {
                                 getMusic2()
-
                             }catch (e : Exception){
                                 Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
                             }
-
                         }else{
                             finish()
                         }
@@ -172,5 +138,8 @@ class List_Musics : AppCompatActivity() {
     companion object{
         const val SHARED_MAIN = "MUSICS"
         const val SHARED_LIST_MUSIC = "LIST_MUSICS"
+
+        const val SHARED_LIST_MUSIC_ACTIVE = "LIST_MUSIC_ACTIVE"
+        const val SHARED_MUSIC_ACTIVE = "MUSIC_ACTIVE"
     }
 }

@@ -8,15 +8,11 @@ class Music(
     val diretorio: String,
     val duration: Long,
     var favorito: Boolean,
-    val imagem: String
+    val imagem: String,
+    val position: Int
 ){
-    var position : Int? = null
-
     fun favoritarMusic(){
         favorito = !favorito
-    }
-    fun setPosition(index : Int){
-        this.position = index
     }
 }
 

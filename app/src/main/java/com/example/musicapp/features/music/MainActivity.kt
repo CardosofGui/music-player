@@ -4,11 +4,8 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
-import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
@@ -34,14 +31,13 @@ import com.example.musicapp.features.music.services.MusicService
 import com.example.musicapp.R
 import com.example.musicapp.application.MusicApplication
 import com.example.musicapp.features.list_music.List_Musics
-import com.example.musicapp.features.list_music.Splash_Screen
+import com.example.musicapp.features.list_music.List_Musics.Companion.SHARED_LIST_MUSIC_ACTIVE
+import com.example.musicapp.features.list_music.List_Musics.Companion.SHARED_MUSIC_ACTIVE
 import com.example.musicapp.features.music.services.NotificationReceiver
 import com.example.musicapp.features.music.viewModel.MainViewModel
-import com.example.musicapp.model.ActionClick
 import com.example.musicapp.model.Music
-import com.example.musicapp.singleton.MusicSingleton
 import com.example.musicapp.singleton.MusicSingleton.index
-import com.example.musicapp.singleton.MusicSingleton.listaMusicas
+import com.example.musicapp.singleton.MusicSingleton.playlistAtual
 import com.example.musicapp.singleton.MusicSingleton.repeatMusic
 import com.example.musicapp.singleton.MusicSingleton.shuffleOn
 import com.example.musicapp.singleton.MusicSingleton.tempoPause
@@ -51,21 +47,28 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.Exception
 
 
-class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
+class MainActivity : AppCompatActivity(), ServiceConnection {
 
     lateinit var mMainViewModel: MainViewModel
-    lateinit var mediaSession : MediaSessionCompat
+    lateinit var SHARED_PREFERENCES_MUSIC: SharedPreferences
+    lateinit var SHARED_PREFERENCES_MUSIC_EDITOR: SharedPreferences.Editor
 
     var handler: Handler = Handler()
     var musicService: MusicService? = null
-
-    lateinit var playlistAtual : ArrayList<Music>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mediaSession = MediaSessionCompat(this, "PlayerAudio")
+        startService(Intent(this, CloseNotification::class.java))
+        startService(Intent(this, MusicService::class.java))
+
+        SHARED_PREFERENCES_MUSIC = getSharedPreferences(
+            List_Musics.SHARED_MAIN,
+            MODE_PRIVATE
+        )
+        SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
+
 
         val intent = Intent(this, MusicService::class.java)
         bindService(intent, this, Context.BIND_AUTO_CREATE)
@@ -84,7 +87,9 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
 
                     mediaPlayer.setOnCompletionListener {
                         if (!it.isPlaying) {
-                            nextMusic()
+                            musicService?.nextMusic()
+                            mMainViewModel.atualizarDadosMusica()
+                            trocarIconeIniciar()
                         }
                     }
                 }
@@ -95,9 +100,11 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
 
     private fun initDados() {
         val gson = Gson()
-        playlistAtual = gson.fromJson(intent.getStringExtra("PLAYLIST-SELECIONADA"), object : TypeToken<ArrayList<Music>>(){}.type)
+        playlistAtual = gson.fromJson(SHARED_PREFERENCES_MUSIC.getString(SHARED_LIST_MUSIC_ACTIVE, ""), object : TypeToken<ArrayList<Music>>(){}.type)
 
-        index = intent.getIntExtra("MUSICA_SELECIONADA", index)
+        if(index != SHARED_PREFERENCES_MUSIC.getInt(SHARED_MUSIC_ACTIVE, -1)){
+            index = SHARED_PREFERENCES_MUSIC.getInt(SHARED_MUSIC_ACTIVE, -1)
+        }
 
         mMainViewModel.setListaMusica(playlistAtual)
         mMainViewModel.nomeArtista.observe(this, Observer {
@@ -145,20 +152,26 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
 
 
         btnIniciaMusica.setOnClickListener {
-            clickPlayer()
+            musicService?.clickPlayer()
+            mMainViewModel.atualizarDadosMusica()
+            trocarIconeIniciar()
         }
 
         btnProximaMusica.setOnClickListener {
 
             animationTransition(animationTransitionRight){
-                nextMusic()
+                musicService?.nextMusic()
+                mMainViewModel.atualizarDadosMusica()
+                trocarIconeIniciar()
             }
         }
 
         btnVoltarMusica.setOnClickListener {
 
             animationTransition(animationTransitionLeft){
-                previousMusic()
+                musicService?.previousMusic()
+                mMainViewModel.atualizarDadosMusica()
+                trocarIconeIniciar()
             }
         }
 
@@ -242,127 +255,8 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
-    override fun clickPlayer() {
-        if(mediaPlayer.isPlaying){
-            mediaPlayer.pause()
-            showNotifications(R.drawable.ic_baseline_play_circle_filled_24)
-        }else{
-            val uri = Uri.parse(playlistAtual[index].diretorio)
-            mediaPlayer = MediaPlayer.create(baseContext, uri)
-            mediaPlayer.seekTo(tempoPause*1000)
-            mediaPlayer.start()
-            showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
-        }
-
-        mMainViewModel.atualizarDadosMusica()
-        trocarIconeIniciar()
-    }
-    override fun nextMusic() {
-        if(!repeatMusic){
-            if(shuffleOn){
-                index = (0 until playlistAtual.size).random()
-            }else{
-                index++
-
-                if(index >= playlistAtual.size){
-                    index = 0
-                }
-            }
-        }
-
-        if(mediaPlayer.isPlaying){
-            mediaPlayer.pause()
-            mediaPlayer.release()
-        }
-
-        val uri = Uri.parse(playlistAtual[index].diretorio)
-        mediaPlayer = MediaPlayer.create(this, uri)
-        mediaPlayer.start()
-        showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
-
-        mMainViewModel.atualizarDadosMusica()
-        trocarIconeIniciar()
-    }
-    override fun previousMusic() {
-        if(!repeatMusic){
-            if(shuffleOn){
-                index = (0 until playlistAtual.size).random()
-            }else{
-                index++
-
-                if(index < 0){
-                    index = 0
-                }
-            }
-        }
 
 
-        if(mediaPlayer.isPlaying){
-            mediaPlayer.pause()
-            mediaPlayer.release()
-        }
-
-        val uri = Uri.parse(playlistAtual[index].diretorio)
-        mediaPlayer = MediaPlayer.create(this, uri)
-        mediaPlayer.start()
-        showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
-
-        mMainViewModel.atualizarDadosMusica()
-        trocarIconeIniciar()
-    }
-
-    @SuppressLint("UseCompatLoadingForDrawables", "WrongConstant")
-    fun showNotifications(playPauseBtn : Int){
-        val customNotificationStyle = RemoteViews(packageName, R.layout.custom_notification)
-        val musicaTocando = playlistAtual[index]
-
-        val intent = Intent(this, MainActivity::class.java)
-        val contentIntent = PendingIntent.getActivity(this, 0, intent, FLAG_ACTIVITY_CLEAR_TOP)
-
-        val prevIntent = Intent(this, NotificationReceiver::class.java).setAction(MusicApplication.ACTION_PREVIOUS)
-        val prevPendingIntent = PendingIntent.getBroadcast(this, 0, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-        val nextIntent = Intent(this, NotificationReceiver::class.java).setAction(MusicApplication.ACTION_NEXT)
-        val nextPendingIntent = PendingIntent.getBroadcast(this, 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-        val playIntent = Intent(this, NotificationReceiver::class.java).setAction(MusicApplication.ACTION_PLAY)
-        val playPendingIntent = PendingIntent.getBroadcast(this, 0, playIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-
-        val bitmap: Bitmap?
-        bitmap = try {
-            val picture = Uri.parse(playlistAtual[index].imagem)
-            MediaStore.Images.Media.getBitmap(this.contentResolver, picture)
-        }catch (e : Exception){
-            val defaultPicture : Drawable? = getDrawable(R.drawable.img_music)
-            val bitmapDraw = defaultPicture?.toBitmap()
-            bitmapDraw
-        }
-
-        customNotificationStyle.setTextViewText(R.id.txtTitleMusic, musicaTocando.nomeMusica)
-        customNotificationStyle.setTextViewText(R.id.txtTitleArtist, musicaTocando.nomeArtista)
-        customNotificationStyle.setImageViewBitmap(R.id.imgMusicImageNotification, bitmap)
-
-        customNotificationStyle.setOnClickPendingIntent(R.id.btnPreviusMusic, prevPendingIntent)
-        customNotificationStyle.setOnClickPendingIntent(R.id.btnPlayMusic, playPendingIntent)
-        customNotificationStyle.setOnClickPendingIntent(R.id.btnNextMusic, nextPendingIntent)
-        customNotificationStyle.setOnClickPendingIntent(R.id.llnNotification, contentIntent)
-
-        customNotificationStyle.setImageViewResource(R.id.btnPlayMusic, playPauseBtn)
-
-        val notification = NotificationCompat.Builder(this, MusicApplication.CHANNEL_ID_2)
-            .setSmallIcon(playPauseBtn)
-            .setCustomContentView(customNotificationStyle)
-            .setVisibility(Notification.VISIBILITY_PUBLIC)
-            .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOnlyAlertOnce(false)
-            .build()
-
-        val notificationManager : NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(0, notification)
-        startService(Intent(this, CloseNotification::class.java))
-    }
 
     companion object {
         var mediaPlayer = MediaPlayer()
@@ -379,7 +273,6 @@ class MainActivity : AppCompatActivity(), ActionClick, ServiceConnection {
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         val binder = service as MusicService.MyBinder
         musicService = binder.getService()
-        musicService!!.setCallback(this)
         Log.e("conexao", "coneceted")
     }
 

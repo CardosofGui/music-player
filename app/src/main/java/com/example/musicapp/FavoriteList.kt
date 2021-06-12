@@ -81,8 +81,8 @@ class FavoriteList : Fragment() {
         val jsonPlaylist = gson.toJson(MusicSingleton.listaMusicas.filter { it.favorito })
 
         val intent = Intent(this.context, MainActivity::class.java)
-        intent.putExtra("MUSICA_SELECIONADA", it)
-        intent.putExtra("PLAYLIST-SELECIONADA", jsonPlaylist)
+        SHARED_PREFERENCES_MUSIC_EDITOR.putString(List_Musics.SHARED_LIST_MUSIC_ACTIVE, jsonPlaylist).commit()
+        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(List_Musics.SHARED_MUSIC_ACTIVE, it).commit()
         startActivity(intent)
     }
 

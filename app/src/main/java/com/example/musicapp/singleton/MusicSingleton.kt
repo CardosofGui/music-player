@@ -5,6 +5,8 @@ import com.example.musicapp.model.Music
 
 object MusicSingleton{
     var listaMusicas : ArrayList<Music> = ArrayList<Music>()
+    var playlistAtual : ArrayList<Music> = ArrayList<Music>()
+
 
     var index = 0
 
