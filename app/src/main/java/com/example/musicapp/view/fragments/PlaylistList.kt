@@ -16,6 +16,7 @@ import com.example.musicapp.model.singleton.MusicSingleton
 import com.example.musicapp.view.MenuInicial
 import com.example.musicapp.view.MusicPlayer
 import com.example.musicapp.view.PlaylistForm
+import com.example.musicapp.view.PlaylistViewer
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 
@@ -84,12 +85,9 @@ class PlaylistList : Fragment() {
     }
 
     private fun onClickPlaylist(index : Int) {
-        val gson = Gson()
-        val jsonPlaylist = gson.toJson(MusicSingleton.playlistMusicas[index].playlist)
+        val intent = Intent(this.context, PlaylistViewer::class.java)
+        intent.putExtra("INDEX-PLAYLIST", index)
 
-        val intent = Intent(this.context, MusicPlayer::class.java)
-        SHARED_PREFERENCES_MUSIC_EDITOR.putString(MenuInicial.SHARED_LIST_MUSIC_ACTIVE, jsonPlaylist).commit()
-        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(MenuInicial.SHARED_MUSIC_ACTIVE, 0).commit()
         startActivity(intent)
     }
 

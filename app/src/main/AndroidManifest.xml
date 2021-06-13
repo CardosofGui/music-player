@@ -12,7 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MusicApp">
-        <activity android:name=".view.PlaylistForm"></activity>
+        <activity android:name=".view.PlaylistViewer"></activity>
+        <activity android:name=".view.PlaylistForm" />
         <activity android:name=".view.Splash_Screen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,7 +21,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.MenuInicial"></activity>
+        <activity android:name=".view.MenuInicial" />
         <activity
             android:name=".view.MusicPlayer"
             android:clearTaskOnLaunch="true"

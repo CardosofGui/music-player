@@ -5,6 +5,7 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.R
 import com.example.musicapp.model.PlaylistMusic
@@ -28,6 +29,7 @@ class PlaylistAdapter(
     override fun onBindViewHolder(holder: PlaylistViewHolder, position: Int) {
         val playlistSelecionada = listaPlaylists[position]
         val view = holder.itemView
+        val animation = AnimationUtils.loadAnimation(context, R.anim.animation)
 
         val artUri : Uri? = Uri.parse(listaPlaylists[position].playlist[0].imagem)
         view.imgMusicCard.setImageURI(artUri)
@@ -37,6 +39,7 @@ class PlaylistAdapter(
         view.txtQuantidadeMusic.text = "${playlistSelecionada.playlist.size} Músicas"
 
         view.cardPlaylist.setOnClickListener {
+            view.cardPlaylist.startAnimation(animation)
             onClickPlaylist(position)
         }
     }

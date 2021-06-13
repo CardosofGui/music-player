@@ -15,22 +15,24 @@ import kotlinx.android.synthetic.main.card_music.view.txtNomeArtistaCard
 import kotlinx.android.synthetic.main.card_music.view.txtNomeMusicaCard
 import kotlinx.android.synthetic.main.card_music_add_playlist.view.*
 
-class MusicAddPlaylistAdapter(
+class MusicPlaylistAdapter(
     val context : Context,
     val listaMusicas : ArrayList<Music>,
-    val onSelectMusic : ((Int) -> Unit)
-) : RecyclerView.Adapter<MusicAddViewHolder>() {
+    val onSelectMusic : ((Int) -> Unit),
+    var addMusic : Boolean = false
+) : RecyclerView.Adapter<MusicPlaylistViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicAddViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicPlaylistViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.card_music_add_playlist, parent, false)
-        return MusicAddViewHolder(view)
+        return MusicPlaylistViewHolder(view)
     }
 
     override fun getItemCount(): Int = listaMusicas.size
 
-    override fun onBindViewHolder(holder: MusicAddViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: MusicPlaylistViewHolder, position: Int) {
         val music = listaMusicas[position]
         val view = holder.itemView
+        val animation = AnimationUtils.loadAnimation(context, R.anim.animation)
 
         val artUri : Uri? = Uri.parse(listaMusicas[position].imagem)
         view.imgMusicCard.setImageURI(artUri)
@@ -39,10 +41,14 @@ class MusicAddPlaylistAdapter(
         view.txtNomeArtistaCard.text = music.nomeArtista
 
         view.cardSelectMusic.setOnClickListener {
-            if(view.btnSelectMusic.visibility == View.GONE){
-                view.btnSelectMusic.visibility = View.VISIBLE
+            if(addMusic){
+                if(view.btnSelectMusic.visibility == View.GONE){
+                    view.btnSelectMusic.visibility = View.VISIBLE
+                }else{
+                    view.btnSelectMusic.visibility = View.GONE
+                }
             }else{
-                view.btnSelectMusic.visibility = View.GONE
+                view.cardSelectMusic.startAnimation(animation)
             }
 
             onSelectMusic(position)
@@ -51,4 +57,4 @@ class MusicAddPlaylistAdapter(
 
 }
 
-class MusicAddViewHolder(view : View) : RecyclerView.ViewHolder(view)
+class MusicPlaylistViewHolder(view : View) : RecyclerView.ViewHolder(view)

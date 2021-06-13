@@ -14,14 +14,13 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
-        android:paddingTop="20dp"
         android:paddingBottom="20dp"
         android:background="#1A1A1A">
 
         <ImageView
             android:id="@+id/imgMusicCard"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:scaleType="centerCrop"
             tools:src="@tools:sample/avatars" />
 
