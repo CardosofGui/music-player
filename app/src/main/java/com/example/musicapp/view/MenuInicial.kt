@@ -13,6 +13,8 @@ import com.CodeBoy.MediaFacer.AudioGet
 import com.CodeBoy.MediaFacer.MediaFacer
 import com.example.musicapp.R
 import com.example.musicapp.model.Music
+import com.example.musicapp.model.PlaylistMusic
+import com.example.musicapp.model.singleton.MusicSingleton
 import com.example.musicapp.model.singleton.MusicSingleton.listaMusicas
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
@@ -53,39 +55,44 @@ class MenuInicial : AppCompatActivity() {
      */
 
     fun getMusic2() {
-            MediaFacer
-                .withAudioContex(this)
-                .getAllAudioContent(AudioGet.externalContentUri).forEachIndexed { index, music ->
-                    listaMusicas.add(
-                        Music(
-                            music.title,
-                            music.artist,
-                            music.assetFileStringUri,
-                            music.duration,
-                            false,
-                            music.art_uri.toString(),
-                            index
-                        )
+        MediaFacer
+            .withAudioContex(this)
+            .getAllAudioContent(AudioGet.externalContentUri).forEachIndexed { index, music ->
+                listaMusicas.add(
+                    Music(
+                        music.title,
+                        music.artist,
+                        music.assetFileStringUri,
+                        music.duration,
+                        false,
+                        music.art_uri.toString(),
+                        index
                     )
-                }
+                )
+            }
 
-            val removeDuplicates = listaMusicas.distinctBy { it.diretorio }
-            listaMusicas = removeDuplicates as ArrayList<Music>
+        val removeDuplicates = listaMusicas.distinctBy { it.diretorio }
+        listaMusicas = removeDuplicates as ArrayList<Music>
 
-            val gson = Gson()
-            val listMusics = SHARED_PREFERENCES_MUSIC.getString(SHARED_LIST_MUSIC, "")
-
-
-            if(!listMusics.isNullOrEmpty()){
-                val verificarFavoritos = gson.fromJson<ArrayList<Music>>(listMusics, object : TypeToken<ArrayList<Music>>(){}.type)
+        val gson = Gson()
+        val listMusics = SHARED_PREFERENCES_MUSIC.getString(SHARED_LIST_MUSIC, "")
 
 
-                listaMusicas.forEachIndexed { index, music ->
-                    if(music.diretorio == verificarFavoritos[index].diretorio && verificarFavoritos[index].favorito){
-                        music.favoritarMusic()
-                    }
+        if(!listMusics.isNullOrEmpty()){
+            val verificarFavoritos = gson.fromJson<ArrayList<Music>>(listMusics, object : TypeToken<ArrayList<Music>>(){}.type)
+
+
+            listaMusicas.forEachIndexed { index, music ->
+                if(music.diretorio == verificarFavoritos[index].diretorio && verificarFavoritos[index].favorito){
+                    music.favoritarMusic()
                 }
             }
+        }
+
+        val playlistsJson = SHARED_PREFERENCES_MUSIC.getString(SHARED_PLAYLISTS, "")
+        val playlistsArray = gson.fromJson<ArrayList<PlaylistMusic>>(playlistsJson, object : TypeToken<ArrayList<PlaylistMusic>>(){}.type)
+
+        MusicSingleton.playlistMusicas = playlistsArray
     }
 
     // Exibe o request
@@ -142,5 +149,7 @@ class MenuInicial : AppCompatActivity() {
 
         const val SHARED_LIST_MUSIC_ACTIVE = "LIST_MUSIC_ACTIVE"
         const val SHARED_MUSIC_ACTIVE = "MUSIC_ACTIVE"
+
+        const val SHARED_PLAYLISTS = "SHARED_PLAYLISTS"
     }
 }
