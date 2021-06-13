@@ -90,9 +90,11 @@ class MenuInicial : AppCompatActivity() {
         }
 
         val playlistsJson = SHARED_PREFERENCES_MUSIC.getString(SHARED_PLAYLISTS, "")
-        val playlistsArray = gson.fromJson<ArrayList<PlaylistMusic>>(playlistsJson, object : TypeToken<ArrayList<PlaylistMusic>>(){}.type)
 
-        MusicSingleton.playlistMusicas = playlistsArray
+        if(playlistsJson != ""){
+            val playlistsArray = gson.fromJson<ArrayList<PlaylistMusic>>(playlistsJson, object : TypeToken<ArrayList<PlaylistMusic>>(){}.type)
+            MusicSingleton.playlistMusicas = playlistsArray
+        }
     }
 
     // Exibe o request
