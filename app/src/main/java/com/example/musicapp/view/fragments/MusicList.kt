@@ -1,23 +1,24 @@
-package com.example.musicapp
+package com.example.musicapp.view.fragments
 
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.musicapp.features.list_music.adapter.MusicAdapter
-import com.example.musicapp.features.music.MainActivity
-import com.example.musicapp.singleton.MusicSingleton
+import com.example.musicapp.R
+import com.example.musicapp.model.adapter.MusicAdapter
+import com.example.musicapp.view.MusicPlayer
+import com.example.musicapp.model.singleton.MusicSingleton
 import com.google.gson.Gson
-import com.example.musicapp.features.list_music.List_Musics
-import com.example.musicapp.features.list_music.List_Musics.Companion.SHARED_LIST_MUSIC_ACTIVE
-import com.example.musicapp.features.list_music.List_Musics.Companion.SHARED_MUSIC_ACTIVE
+import com.example.musicapp.view.MenuInicial
+import com.example.musicapp.view.MenuInicial.Companion.SHARED_LIST_MUSIC_ACTIVE
+import com.example.musicapp.view.MenuInicial.Companion.SHARED_MUSIC_ACTIVE
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -56,32 +57,37 @@ class MusicList : Fragment() {
 
         val view = inflater.inflate(R.layout.fragment_music_list, container, false)
 
-        SHARED_PREFERENCES_MUSIC = requireActivity().getSharedPreferences(
-            List_Musics.SHARED_MAIN,
-            AppCompatActivity.MODE_PRIVATE
-        )
-        SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
+        try {
+            SHARED_PREFERENCES_MUSIC = requireActivity().getSharedPreferences(
+                MenuInicial.SHARED_MAIN,
+                AppCompatActivity.MODE_PRIVATE
+            )
+            SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
-        recyclerViewMusics = view.findViewById(R.id.recyclerViewMusics)
+            recyclerViewMusics = view.findViewById(R.id.recyclerViewMusics)
 
-        initRecyclerView()
+            initRecyclerView()
+        }catch(e: Exception){
+            Toast.makeText(this.context, "$e", Toast.LENGTH_SHORT).show()
+        }
+
+
         return view
     }
 
-    fun favoriteMusic(it : Int){
+    private fun favoriteMusic(it : Int){
         MusicSingleton.listaMusicas[it].favoritarMusic()
 
         val gson = Gson()
         val json = gson.toJson(MusicSingleton.listaMusicas)
 
-        SHARED_PREFERENCES_MUSIC_EDITOR.putString(List_Musics.SHARED_LIST_MUSIC, json).apply()
+        SHARED_PREFERENCES_MUSIC_EDITOR.putString(MenuInicial.SHARED_LIST_MUSIC, json).apply()
     }
-
     private fun onClickMusic(it: Int) {
         val gson = Gson()
         val jsonPlaylist = gson.toJson(MusicSingleton.listaMusicas)
 
-        val intent = Intent(this.context, MainActivity::class.java)
+        val intent = Intent(this.context, MusicPlayer::class.java)
         SHARED_PREFERENCES_MUSIC_EDITOR.putString(SHARED_LIST_MUSIC_ACTIVE, jsonPlaylist).commit()
         SHARED_PREFERENCES_MUSIC_EDITOR.putInt(SHARED_MUSIC_ACTIVE, it).commit()
         startActivity(intent)

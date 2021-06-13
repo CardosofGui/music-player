@@ -1,25 +1,16 @@
-package com.example.musicapp.features.list_music.adapter
+package com.example.musicapp.model.adapter
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 
 import android.view.animation.AnimationUtils
-import android.widget.Toast
-import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.musicapp.R
 import com.example.musicapp.model.Music
-import com.example.musicapp.singleton.MusicSingleton
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.card_music.view.*
-import java.io.ByteArrayOutputStream
 
 class MusicAdapter(
     val context: Context,

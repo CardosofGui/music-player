@@ -1,6 +1,5 @@
-package com.example.musicapp.singleton
+package com.example.musicapp.model.singleton
 
-import com.CodeBoy.MediaFacer.mediaHolders.audioContent
 import com.example.musicapp.model.Music
 
 object MusicSingleton{

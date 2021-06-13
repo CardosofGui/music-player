@@ -1,4 +1,4 @@
-package com.example.musicapp.features.music.services
+package com.example.musicapp.services
 
 import android.content.BroadcastReceiver
 import android.content.Context

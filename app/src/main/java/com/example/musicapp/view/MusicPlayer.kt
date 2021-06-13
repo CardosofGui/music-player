@@ -1,53 +1,36 @@
-package com.example.musicapp.features.music
+package com.example.musicapp.view
 
-import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.*
-import android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
-import android.provider.MediaStore
-import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
 import android.view.MenuItem
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.RemoteViews
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.example.musicapp.features.music.services.CloseNotification
-import com.example.musicapp.features.music.services.MusicService
+import com.example.musicapp.services.CloseNotification
+import com.example.musicapp.services.MusicService
 import com.example.musicapp.R
-import com.example.musicapp.application.MusicApplication
-import com.example.musicapp.features.list_music.List_Musics
-import com.example.musicapp.features.list_music.List_Musics.Companion.SHARED_LIST_MUSIC_ACTIVE
-import com.example.musicapp.features.list_music.List_Musics.Companion.SHARED_MUSIC_ACTIVE
-import com.example.musicapp.features.music.services.NotificationReceiver
-import com.example.musicapp.features.music.viewModel.MainViewModel
+import com.example.musicapp.view.MenuInicial.Companion.SHARED_LIST_MUSIC_ACTIVE
+import com.example.musicapp.view.MenuInicial.Companion.SHARED_MUSIC_ACTIVE
+import com.example.musicapp.viewmodel.MainViewModel
 import com.example.musicapp.model.Music
-import com.example.musicapp.singleton.MusicSingleton.index
-import com.example.musicapp.singleton.MusicSingleton.playlistAtual
-import com.example.musicapp.singleton.MusicSingleton.repeatMusic
-import com.example.musicapp.singleton.MusicSingleton.shuffleOn
-import com.example.musicapp.singleton.MusicSingleton.tempoPause
+import com.example.musicapp.model.singleton.MusicSingleton.index
+import com.example.musicapp.model.singleton.MusicSingleton.playlistAtual
+import com.example.musicapp.model.singleton.MusicSingleton.repeatMusic
+import com.example.musicapp.model.singleton.MusicSingleton.shuffleOn
+import com.example.musicapp.model.singleton.MusicSingleton.tempoPause
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_main.*
-import java.lang.Exception
 
 
-class MainActivity : AppCompatActivity(), ServiceConnection {
+class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
     lateinit var mMainViewModel: MainViewModel
     lateinit var SHARED_PREFERENCES_MUSIC: SharedPreferences
@@ -64,7 +47,7 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
         startService(Intent(this, MusicService::class.java))
 
         SHARED_PREFERENCES_MUSIC = getSharedPreferences(
-            List_Musics.SHARED_MAIN,
+            MenuInicial.SHARED_MAIN,
             MODE_PRIVATE
         )
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
@@ -125,7 +108,6 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
         trocarIconeIniciar()
         mMainViewModel.atualizarDadosMusica()
 
-
         seekMusicDuration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (mediaPlayer.isPlaying && fromUser) {
@@ -185,7 +167,6 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
             trocarIconeIniciar()
         }
     }
-
     private fun animationTransition(
         animationTransition: Animation,
         function: () -> Unit
@@ -213,7 +194,6 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
             }
         })
     }
-
     private fun formatarTime(time: Int): String {
         var totalOut = ""
         var totalNew = ""
@@ -228,7 +208,6 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
             return totalOut
         }
     }
-
     private fun trocarIconeIniciar() {
         if (mediaPlayer.isPlaying) {
             btnIniciaMusica.setImageResource(R.drawable.ic_baseline_pause_circle_filled_24)
@@ -248,18 +227,10 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
             btnRepeatMusic.setImageResource(R.drawable.ic_baseline_repeat_24)
         }
     }
-
     private fun initToolbar(title : String) {
         toolbar.title = title
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
-
-
-
-
-    companion object {
-        var mediaPlayer = MediaPlayer()
     }
 
     override fun onResume() {
@@ -275,7 +246,6 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
         musicService = binder.getService()
         Log.e("conexao", "coneceted")
     }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             android.R.id.home -> {
@@ -284,5 +254,9 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
             }
             else -> return false
         }
+    }
+
+    companion object {
+        var mediaPlayer = MediaPlayer()
     }
 }

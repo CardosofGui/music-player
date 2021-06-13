@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".features.list_music.Splash_Screen"
+    tools:context=".view.Splash_Screen"
     android:background="@drawable/background"
     android:gravity="center">
 

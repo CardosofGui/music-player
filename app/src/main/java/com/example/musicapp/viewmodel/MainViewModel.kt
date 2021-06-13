@@ -1,10 +1,10 @@
-package com.example.musicapp.features.music.viewModel
+package com.example.musicapp.viewmodel
 
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.musicapp.model.Music
-import com.example.musicapp.singleton.MusicSingleton
+import com.example.musicapp.model.singleton.MusicSingleton
 
 class MainViewModel : ViewModel() {
     private lateinit var listaMusica : ArrayList<Music>

@@ -12,23 +12,23 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MusicApp">
-        <activity android:name=".features.list_music.Splash_Screen">
+        <activity android:name=".view.Splash_Screen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".features.list_music.List_Musics">
+        <activity android:name=".view.MenuInicial">
 
         </activity>
         <activity
-            android:name=".features.music.MainActivity"
+            android:name=".view.MusicPlayer"
             android:clearTaskOnLaunch="true"
             android:launchMode="singleTop" />
 
         <receiver
-            android:name=".features.music.services.NotificationReceiver"
+            android:name="com.example.musicapp.services.NotificationReceiver"
             android:enabled="true">
             <intent-filter>
                 <action android:name="ACTION_NEXT" />
@@ -42,9 +42,9 @@
             android:resource="@array/preloaded_fonts" />
 
         <service
-            android:name=".features.music.services.MusicService"
+            android:name="com.example.musicapp.services.MusicService"
             android:enabled="true" />
-        <service android:name=".features.music.services.CloseNotification" />
+        <service android:name="com.example.musicapp.services.CloseNotification" />
     </application>
 
 </manifest>

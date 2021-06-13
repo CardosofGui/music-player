@@ -1,4 +1,4 @@
-package com.example.musicapp.features.list_music
+package com.example.musicapp.view
 
 import android.content.*
 import android.content.pm.PackageManager
@@ -13,12 +13,12 @@ import com.CodeBoy.MediaFacer.AudioGet
 import com.CodeBoy.MediaFacer.MediaFacer
 import com.example.musicapp.R
 import com.example.musicapp.model.Music
-import com.example.musicapp.singleton.MusicSingleton.listaMusicas
+import com.example.musicapp.model.singleton.MusicSingleton.listaMusicas
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-class List_Musics : AppCompatActivity() {
+class MenuInicial : AppCompatActivity() {
 
     lateinit var SHARED_PREFERENCES_MUSIC: SharedPreferences
     lateinit var SHARED_PREFERENCES_MUSIC_EDITOR: SharedPreferences.Editor
@@ -29,16 +29,20 @@ class List_Musics : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list__musics)
 
-        SHARED_PREFERENCES_MUSIC = getSharedPreferences(SHARED_MAIN, MODE_PRIVATE)
-        SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
+        try {
+            SHARED_PREFERENCES_MUSIC = getSharedPreferences(SHARED_MAIN, MODE_PRIVATE)
+            SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
-        verificarPermissao()
+            verificarPermissao()
 
-        val navController = findNavController(R.id.fragment_container)
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+            val navController = findNavController(R.id.fragment_container)
+            val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
 
-        bottomNav.setupWithNavController(navController)
-        //initToolbar("Músicas")
+            bottomNav.setupWithNavController(navController)
+            //initToolbar("Músicas")
+        }catch(e : Exception){
+            Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
+        }
     }
 
     /*
@@ -109,7 +113,6 @@ class List_Musics : AppCompatActivity() {
             Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
         }
     }
-
     private fun verificarPermissao(){
         // Verifica se existe a permissão para acessar Store
         try {
@@ -132,8 +135,6 @@ class List_Musics : AppCompatActivity() {
             Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
         }
     }
-
-
 
     companion object{
         const val SHARED_MAIN = "MUSICS"

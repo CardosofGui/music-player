@@ -1,4 +1,4 @@
-package com.example.musicapp.features.list_music
+package com.example.musicapp.view
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -12,7 +12,7 @@ class Splash_Screen : AppCompatActivity() {
         setContentView(R.layout.activity_splash__screen)
 
         Handler().postDelayed(Runnable {
-            startActivity(Intent(this, List_Musics::class.java))
+            startActivity(Intent(this, MenuInicial::class.java))
             finish()
         }, 800)
     }

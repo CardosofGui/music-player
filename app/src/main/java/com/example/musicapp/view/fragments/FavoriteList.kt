@@ -1,4 +1,4 @@
-package com.example.musicapp
+package com.example.musicapp.view.fragments
 
 import android.content.Intent
 import android.content.SharedPreferences
@@ -10,11 +10,12 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.musicapp.features.list_music.List_Musics
-import com.example.musicapp.features.list_music.adapter.MusicAdapter
-import com.example.musicapp.features.music.MainActivity
+import com.example.musicapp.R
+import com.example.musicapp.view.MenuInicial
+import com.example.musicapp.model.adapter.MusicAdapter
+import com.example.musicapp.view.MusicPlayer
 import com.example.musicapp.model.Music
-import com.example.musicapp.singleton.MusicSingleton
+import com.example.musicapp.model.singleton.MusicSingleton
 import com.google.gson.Gson
 
 // TODO: Rename parameter arguments, choose names that match
@@ -55,7 +56,7 @@ class FavoriteList : Fragment() {
         val view = inflater.inflate(R.layout.fragment_favorite_list, container, false)
 
         SHARED_PREFERENCES_MUSIC = requireActivity().getSharedPreferences(
-            List_Musics.SHARED_MAIN,
+            MenuInicial.SHARED_MAIN,
             AppCompatActivity.MODE_PRIVATE
         )
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
@@ -67,22 +68,21 @@ class FavoriteList : Fragment() {
         return view
     }
 
-    fun favoriteMusic(it : Int){
+    private fun favoriteMusic(it : Int){
         MusicSingleton.listaMusicas[it].favoritarMusic()
 
         val gson = Gson()
         val json = gson.toJson(MusicSingleton.listaMusicas)
 
-        SHARED_PREFERENCES_MUSIC_EDITOR.putString(List_Musics.SHARED_LIST_MUSIC, json).apply()
+        SHARED_PREFERENCES_MUSIC_EDITOR.putString(MenuInicial.SHARED_LIST_MUSIC, json).apply()
     }
-
     private fun onClickMusic(it: Int) {
         val gson = Gson()
         val jsonPlaylist = gson.toJson(MusicSingleton.listaMusicas.filter { it.favorito })
 
-        val intent = Intent(this.context, MainActivity::class.java)
-        SHARED_PREFERENCES_MUSIC_EDITOR.putString(List_Musics.SHARED_LIST_MUSIC_ACTIVE, jsonPlaylist).commit()
-        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(List_Musics.SHARED_MUSIC_ACTIVE, it).commit()
+        val intent = Intent(this.context, MusicPlayer::class.java)
+        SHARED_PREFERENCES_MUSIC_EDITOR.putString(MenuInicial.SHARED_LIST_MUSIC_ACTIVE, jsonPlaylist).commit()
+        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(MenuInicial.SHARED_MUSIC_ACTIVE, it).commit()
         startActivity(intent)
     }
 
