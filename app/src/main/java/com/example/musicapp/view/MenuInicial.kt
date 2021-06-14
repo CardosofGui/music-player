@@ -16,6 +16,7 @@ import com.example.musicapp.model.Music
 import com.example.musicapp.model.PlaylistMusic
 import com.example.musicapp.model.singleton.MusicSingleton
 import com.example.musicapp.model.singleton.MusicSingleton.listaMusicas
+import com.example.musicapp.model.singleton.MusicSingleton.playlistMusicas
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -63,29 +64,44 @@ class MenuInicial : AppCompatActivity() {
                 )
             }
 
-        val removeDuplicates = listaMusicas.distinctBy { it.diretorio }
-        listaMusicas = removeDuplicates as ArrayList<Music>
-
         val gson = Gson()
         val listMusics = SHARED_PREFERENCES_MUSIC.getString(SHARED_LIST_MUSIC, "")
+        val playlistsJson = SHARED_PREFERENCES_MUSIC.getString(SHARED_PLAYLISTS, "")
 
+        if(playlistsJson != ""){
+            val playlistsArray = gson.fromJson<ArrayList<PlaylistMusic>>(playlistsJson, object : TypeToken<ArrayList<PlaylistMusic>>(){}.type)
+            playlistMusicas = playlistsArray
+        }
 
         if(!listMusics.isNullOrEmpty()){
             val verificarFavoritos = gson.fromJson<ArrayList<Music>>(listMusics, object : TypeToken<ArrayList<Music>>(){}.type)
 
 
-            listaMusicas.forEachIndexed { index, music ->
-                if(music.diretorio == verificarFavoritos[index].diretorio && verificarFavoritos[index].favorito){
-                    music.favoritarMusic()
+            verificarFavoritos.forEach { musicSelecionada ->
+                var musicaExistente = false
+
+                listaMusicas.forEachIndexed { index, music ->
+                    if(musicSelecionada.diretorio == music.diretorio) {
+                        musicaExistente = true
+                        listaMusicas[index] = musicSelecionada
+                    }
+                }
+
+                playlistMusicas.forEach {
+                    it.playlist.forEach { musicPlaylist ->
+                        if(musicPlaylist.diretorio == musicSelecionada.diretorio && !musicaExistente) it.playlist.remove(musicPlaylist)
+                    }
+                }
+
+                if(!musicaExistente){
+                    verificarFavoritos.remove(musicSelecionada)
+
+                    val jsonPlaylists = gson.toJson(playlistMusicas)
+                    SHARED_PREFERENCES_MUSIC_EDITOR.putString(SHARED_PLAYLISTS, jsonPlaylists).commit()
+                    val json = gson.toJson(listaMusicas)
+                    SHARED_PREFERENCES_MUSIC_EDITOR.putString(SHARED_LIST_MUSIC, json).commit()
                 }
             }
-        }
-
-        val playlistsJson = SHARED_PREFERENCES_MUSIC.getString(SHARED_PLAYLISTS, "")
-
-        if(playlistsJson != ""){
-            val playlistsArray = gson.fromJson<ArrayList<PlaylistMusic>>(playlistsJson, object : TypeToken<ArrayList<PlaylistMusic>>(){}.type)
-            MusicSingleton.playlistMusicas = playlistsArray
         }
     }
 
