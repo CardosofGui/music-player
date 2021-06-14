@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.R
+import com.example.musicapp.databinding.FragmentPlaylistListBinding
 import com.example.musicapp.model.adapter.PlaylistAdapter
 import com.example.musicapp.model.singleton.MusicSingleton
 import com.example.musicapp.view.MenuInicial
@@ -35,12 +36,12 @@ class PlaylistList : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
 
-    lateinit var btnCriarPlaylist : FloatingActionButton
-    lateinit var recyclerView: RecyclerView
     lateinit var adapter : PlaylistAdapter
 
     lateinit var SHARED_PREFERENCES_MUSIC: SharedPreferences
     lateinit var SHARED_PREFERENCES_MUSIC_EDITOR: SharedPreferences.Editor
+
+    private lateinit var binding : FragmentPlaylistListBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,17 +55,15 @@ class PlaylistList : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_playlist_list, container, false)
+
+        binding = FragmentPlaylistListBinding.inflate(inflater, container, false)
+        val view = binding.root
 
         SHARED_PREFERENCES_MUSIC = requireActivity().getSharedPreferences(
             MenuInicial.SHARED_MAIN,
             AppCompatActivity.MODE_PRIVATE
         )
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
-
-        btnCriarPlaylist = view.findViewById(R.id.btnCriarPlaylist)
-        recyclerView = view.findViewById(R.id.recyclerViewPlaylist)
-
 
         initClick()
         initRecyclerView()
@@ -74,12 +73,12 @@ class PlaylistList : Fragment() {
 
     private fun initRecyclerView() {
         adapter = PlaylistAdapter(requireContext(), MusicSingleton.playlistMusicas) {onClickPlaylist(it)}
-        recyclerView.layoutManager = GridLayoutManager(this.context, 2)
-        recyclerView.adapter = adapter
+        binding.recyclerViewPlaylist.layoutManager = GridLayoutManager(this.context, 2)
+        binding.recyclerViewPlaylist.adapter = adapter
     }
 
     private fun initClick() {
-        btnCriarPlaylist.setOnClickListener {
+        binding.btnCriarPlaylist.setOnClickListener {
             startActivity(Intent(this.context, PlaylistForm::class.java))
         }
     }

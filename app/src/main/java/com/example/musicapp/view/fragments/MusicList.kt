@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.R
+import com.example.musicapp.databinding.FragmentMusicListBinding
 import com.example.musicapp.model.adapter.MusicAdapter
 import com.example.musicapp.view.MusicPlayer
 import com.example.musicapp.model.singleton.MusicSingleton
@@ -40,7 +41,7 @@ class MusicList : Fragment() {
 
     lateinit var adapter : MusicAdapter
 
-    lateinit var recyclerViewMusics : RecyclerView
+    private lateinit var binding : FragmentMusicListBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,8 +55,8 @@ class MusicList : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-        val view = inflater.inflate(R.layout.fragment_music_list, container, false)
+        binding = FragmentMusicListBinding.inflate(inflater, container, false)
+        val view = binding.root
 
         try {
             SHARED_PREFERENCES_MUSIC = requireActivity().getSharedPreferences(
@@ -64,13 +65,10 @@ class MusicList : Fragment() {
             )
             SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
-            recyclerViewMusics = view.findViewById(R.id.recyclerViewMusics)
-
             initRecyclerView()
         }catch(e: Exception){
             Toast.makeText(this.context, "$e", Toast.LENGTH_SHORT).show()
         }
-
 
         return view
     }
@@ -95,8 +93,8 @@ class MusicList : Fragment() {
 
     private fun initRecyclerView() {
         adapter = MusicAdapter(requireActivity(), {onClickMusic(it)}, { favoriteMusic(it) }, MusicSingleton.listaMusicas)
-        recyclerViewMusics.layoutManager = LinearLayoutManager(this.context)
-        recyclerViewMusics.adapter = adapter
+        binding.recyclerViewMusics.layoutManager = LinearLayoutManager(this.context)
+        binding.recyclerViewMusics.adapter = adapter
     }
 
     companion object {

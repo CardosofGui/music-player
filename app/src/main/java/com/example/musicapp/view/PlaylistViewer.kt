@@ -12,12 +12,12 @@ import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.R
+import com.example.musicapp.databinding.ActivityPlaylistViewerBinding
 import com.example.musicapp.model.PlaylistMusic
 import com.example.musicapp.model.adapter.MusicPlaylistAdapter
 import com.example.musicapp.model.singleton.MusicSingleton
 import com.example.musicapp.model.singleton.MusicSingleton.playlistMusicas
 import com.google.gson.Gson
-import kotlinx.android.synthetic.main.card_music.view.*
 
 class PlaylistViewer : AppCompatActivity() {
 
@@ -35,9 +35,13 @@ class PlaylistViewer : AppCompatActivity() {
 
     lateinit var playlistSelecionada : PlaylistMusic
 
+    private lateinit var binding : ActivityPlaylistViewerBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_playlist_viewer)
+        binding = ActivityPlaylistViewerBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
         SHARED_PREFERENCES_MUSIC = getSharedPreferences(
             MenuInicial.SHARED_MAIN,

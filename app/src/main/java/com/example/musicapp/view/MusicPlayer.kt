@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.musicapp.services.CloseNotification
 import com.example.musicapp.services.MusicService
 import com.example.musicapp.R
+import com.example.musicapp.databinding.ActivityMainBinding
 import com.example.musicapp.view.MenuInicial.Companion.SHARED_LIST_MUSIC_ACTIVE
 import com.example.musicapp.view.MenuInicial.Companion.SHARED_MUSIC_ACTIVE
 import com.example.musicapp.viewmodel.MainViewModel
@@ -28,7 +29,6 @@ import com.example.musicapp.model.singleton.MusicSingleton.shuffleOn
 import com.example.musicapp.model.singleton.MusicSingleton.tempoPause
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MusicPlayer : AppCompatActivity(), ServiceConnection {
@@ -40,9 +40,13 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
     var handler: Handler = Handler()
     var musicService: MusicService? = null
 
+    private lateinit var binding : ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
         val intent = Intent(this, MusicService::class.java)
         bindService(intent, this, Context.BIND_AUTO_CREATE)
@@ -65,8 +69,8 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
             override fun run() {
                 if (mediaPlayer.isPlaying) {
                     val curretPosition = mediaPlayer.currentPosition / 1000
-                    seekMusicDuration.progress = curretPosition
-                    txtTimeRunning.text = formatarTime(curretPosition)
+                    binding.seekMusicDuration.progress = curretPosition
+                    binding.txtTimeRunning.text = formatarTime(curretPosition)
 
                     mediaPlayer.setOnCompletionListener {
                         if (!it.isPlaying) {
@@ -93,19 +97,19 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
         mMainViewModel.setDados(playlistAtual)
         mMainViewModel.musicaSelecionada.observe(this, Observer {
-            txtArtista.text = it.nomeArtista
-            txtMusica.text = it.nomeMusica
+            binding.txtArtista.text = it.nomeArtista
+            binding.txtMusica.text = it.nomeMusica
 
-            imageMusic.setImageURI(Uri.parse(it.imagem))
-            if(imageMusic.drawable == null) imageMusic.setImageResource(R.drawable.img_music)
+            binding.imageMusic.setImageURI(Uri.parse(it.imagem))
+            if(binding.imageMusic.drawable == null) binding.imageMusic.setImageResource(R.drawable.img_music)
 
-            seekMusicDuration.max = (it.duration / 1000).toInt()
-            txtTimeFinish.text = formatarTime((it.duration / 1000).toInt())
+            binding.seekMusicDuration.max = (it.duration / 1000).toInt()
+            binding.txtTimeFinish.text = formatarTime((it.duration / 1000).toInt())
         })
 
         trocarIconeIniciar()
 
-        seekMusicDuration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        binding.seekMusicDuration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (mediaPlayer.isPlaying && fromUser) {
                     mediaPlayer.seekTo(progress * 1000)
@@ -130,13 +134,13 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
             AnimationUtils.loadAnimation(this, R.anim.animation_transition_left)
 
 
-        btnIniciaMusica.setOnClickListener {
+        binding.btnIniciaMusica.setOnClickListener {
             musicService?.clickPlayer()
             mMainViewModel.trocarMusica()
             trocarIconeIniciar()
         }
 
-        btnProximaMusica.setOnClickListener {
+        binding.btnProximaMusica.setOnClickListener {
 
             animationTransition(animationTransitionRight){
                 musicService?.nextMusic()
@@ -145,7 +149,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
             }
         }
 
-        btnVoltarMusica.setOnClickListener {
+        binding.btnVoltarMusica.setOnClickListener {
 
             animationTransition(animationTransitionLeft){
                 musicService?.previousMusic()
@@ -154,12 +158,12 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
             }
         }
 
-        btnShuffleMusic.setOnClickListener {
+        binding.btnShuffleMusic.setOnClickListener {
             shuffleOn = !shuffleOn
             trocarIconeIniciar()
         }
 
-        btnRepeatMusic.setOnClickListener {
+        binding.btnRepeatMusic.setOnClickListener {
             repeatMusic = !repeatMusic
             trocarIconeIniciar()
         }
@@ -168,11 +172,11 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
         animationTransition: Animation,
         function: () -> Unit
     ) {
-        btnProximaMusica.isClickable = false
-        btnVoltarMusica.isClickable = false
-        btnIniciaMusica.isClickable = false
+        binding.btnProximaMusica.isClickable = false
+        binding.btnVoltarMusica.isClickable = false
+        binding.btnIniciaMusica.isClickable = false
 
-        llnPlayer.startAnimation(animationTransition)
+        binding.llnPlayer.startAnimation(animationTransition)
 
         animationTransition.setAnimationListener(object : Animation.AnimationListener {
             override fun onAnimationRepeat(animation: Animation?) {
@@ -181,9 +185,9 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
             override fun onAnimationEnd(animation: Animation?) {
                 function()
-                btnProximaMusica.isClickable = true
-                btnVoltarMusica.isClickable = true
-                btnIniciaMusica.isClickable = true
+                binding.btnProximaMusica.isClickable = true
+                binding.btnVoltarMusica.isClickable = true
+                binding.btnIniciaMusica.isClickable = true
             }
 
             override fun onAnimationStart(animation: Animation?) {
@@ -207,26 +211,26 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
     }
     private fun trocarIconeIniciar() {
         if (mediaPlayer.isPlaying) {
-            btnIniciaMusica.setImageResource(R.drawable.ic_baseline_pause_circle_filled_24)
+            binding.btnIniciaMusica.setImageResource(R.drawable.ic_baseline_pause_circle_filled_24)
         } else {
-            btnIniciaMusica.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
+            binding.btnIniciaMusica.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
         }
 
         if(shuffleOn){
-            btnShuffleMusic.setImageResource(R.drawable.ic_baseline_shuffle_clicked_24)
+            binding.btnShuffleMusic.setImageResource(R.drawable.ic_baseline_shuffle_clicked_24)
         }else{
-            btnShuffleMusic.setImageResource(R.drawable.ic_baseline_shuffle_24)
+            binding.btnShuffleMusic.setImageResource(R.drawable.ic_baseline_shuffle_24)
         }
 
         if(repeatMusic){
-            btnRepeatMusic.setImageResource(R.drawable.ic_baseline_repeat_clicked)
+            binding.btnRepeatMusic.setImageResource(R.drawable.ic_baseline_repeat_clicked)
         }else{
-            btnRepeatMusic.setImageResource(R.drawable.ic_baseline_repeat_24)
+            binding.btnRepeatMusic.setImageResource(R.drawable.ic_baseline_repeat_24)
         }
     }
     private fun initToolbar(title : String) {
-        toolbar.title = title
-        setSupportActionBar(toolbar)
+        binding.toolbar.title = title
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 

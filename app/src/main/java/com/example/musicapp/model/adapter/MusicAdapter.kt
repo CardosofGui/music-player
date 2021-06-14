@@ -10,8 +10,8 @@ import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.R
+import com.example.musicapp.databinding.CardMusicBinding
 import com.example.musicapp.model.Music
-import kotlinx.android.synthetic.main.card_music.view.*
 
 class MusicAdapter(
     val context: Context,
@@ -21,50 +21,50 @@ class MusicAdapter(
 ) : RecyclerView.Adapter<musicViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): musicViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.card_music, parent, false)
-        return musicViewHolder(view)
+        val binding = CardMusicBinding.inflate(LayoutInflater.from(context), parent, false)
+        return musicViewHolder(binding)
     }
 
     override fun getItemCount(): Int = listaMusicas.size
 
     override fun onBindViewHolder(holder: musicViewHolder, position: Int) {
         val music = listaMusicas[position]
-        val view = holder.itemView
+        val binding = holder.binding
 
         try {
             val artUri : Uri? = Uri.parse(listaMusicas[position].imagem)
-            view.imgMusicCard.setImageURI(artUri)
+            binding.imgMusicCard.setImageURI(artUri)
         }catch (e : Exception){
             Toast.makeText(context, "$e", Toast.LENGTH_LONG).show()
         }
 
-        if(view.imgMusicCard.drawable == null) view.imgMusicCard.setImageResource(R.drawable.img_music)
+        if(binding.imgMusicCard.drawable == null) binding.imgMusicCard.setImageResource(R.drawable.img_music)
 
         val animation = AnimationUtils.loadAnimation(context, R.anim.animation)
 
-        view.txtNomeMusicaCard.text = music.nomeMusica
-        view.txtNomeArtistaCard.text = music.nomeArtista
+        binding.txtNomeMusicaCard.text = music.nomeMusica
+        binding.txtNomeArtistaCard.text = music.nomeArtista
 
-        view.cardMusic.setOnClickListener {
-            view.cardMusic.startAnimation(animation)
+        binding.cardMusic.setOnClickListener {
+            binding.cardMusic.startAnimation(animation)
             onClickMusic(position)
         }
 
-        view.btnFavorite.setOnClickListener {
+        binding.btnFavorite.setOnClickListener {
             if(!music.favorito){
-                view.btnFavorite.setImageResource(R.drawable.ic_baseline_star_24)
+                binding.btnFavorite.setImageResource(R.drawable.ic_baseline_star_24)
             }else{
-                view.btnFavorite.setImageResource(R.drawable.ic_baseline_star_border_24)
+                binding.btnFavorite.setImageResource(R.drawable.ic_baseline_star_border_24)
             }
 
             onFavoriteMusic(music.position ?: 0)
         }
 
         if(music.favorito){
-            view.btnFavorite.setImageResource(R.drawable.ic_baseline_star_24)
+            binding.btnFavorite.setImageResource(R.drawable.ic_baseline_star_24)
         }
     }
 
 }
 
-class musicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+class musicViewHolder(val binding : CardMusicBinding) : RecyclerView.ViewHolder(binding.root)

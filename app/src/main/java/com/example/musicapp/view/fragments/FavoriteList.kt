@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.R
+import com.example.musicapp.databinding.FragmentFavoriteListBinding
 import com.example.musicapp.view.MenuInicial
 import com.example.musicapp.model.adapter.MusicAdapter
 import com.example.musicapp.view.MusicPlayer
@@ -38,7 +39,7 @@ class FavoriteList : Fragment() {
 
     lateinit var adapter : MusicAdapter
 
-    lateinit var recyclerViewMusics : RecyclerView
+    private lateinit var binding : FragmentFavoriteListBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,16 +53,14 @@ class FavoriteList : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-        val view = inflater.inflate(R.layout.fragment_favorite_list, container, false)
+        binding = FragmentFavoriteListBinding.inflate(inflater, container, false)
+        val view = binding.root
 
         SHARED_PREFERENCES_MUSIC = requireActivity().getSharedPreferences(
             MenuInicial.SHARED_MAIN,
             AppCompatActivity.MODE_PRIVATE
         )
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
-
-        recyclerViewMusics = view.findViewById(R.id.recyclerViewMusics)
 
         initRecyclerView()
 
@@ -88,8 +87,8 @@ class FavoriteList : Fragment() {
 
     private fun initRecyclerView() {
         adapter = MusicAdapter(requireActivity(), {onClickMusic(it)}, { favoriteMusic(it) }, MusicSingleton.listaMusicas.filter { it.favorito } as ArrayList<Music>)
-        recyclerViewMusics.layoutManager = LinearLayoutManager(this.context)
-        recyclerViewMusics.adapter = adapter
+        binding.recyclerViewMusics.layoutManager = LinearLayoutManager(this.context)
+        binding.recyclerViewMusics.adapter = adapter
     }
 
     companion object {

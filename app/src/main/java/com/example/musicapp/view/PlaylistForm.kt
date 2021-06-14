@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.beardedhen.androidbootstrap.BootstrapButton
 import com.beardedhen.androidbootstrap.BootstrapEditText
 import com.example.musicapp.R
+import com.example.musicapp.databinding.ActivityPlaylistFormBinding
 import com.example.musicapp.model.Music
 import com.example.musicapp.model.PlaylistMusic
 import com.example.musicapp.model.adapter.MusicPlaylistAdapter
@@ -22,21 +23,18 @@ class PlaylistForm : AppCompatActivity() {
 
     private val playlistCriada = ArrayList<Music>()
 
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var toolbar : Toolbar
-    private lateinit var btnCriarPlaylist : BootstrapButton
-    private lateinit var edtNome : BootstrapEditText
-    private lateinit var edtDesc : BootstrapEditText
-
     private lateinit var SHARED_PREFERENCES_MUSIC: SharedPreferences
     private lateinit var SHARED_PREFERENCES_MUSIC_EDITOR: SharedPreferences.Editor
 
-
     lateinit var adapter : MusicPlaylistAdapter
+
+    private lateinit var binding : ActivityPlaylistFormBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_playlist_form)
+        binding = ActivityPlaylistFormBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
         SHARED_PREFERENCES_MUSIC = getSharedPreferences(
             MenuInicial.SHARED_MAIN,
@@ -44,24 +42,18 @@ class PlaylistForm : AppCompatActivity() {
         )
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
-        toolbar = findViewById(R.id.toolbar)
-        recyclerView = findViewById(R.id.recyclerViewMusicPlaylist)
-        btnCriarPlaylist = findViewById(R.id.btnCriarPlaylist)
-        edtNome = findViewById(R.id.edtNome)
-        edtDesc = findViewById(R.id.edtDesc)
-
         initToolbar("Criar Playlist")
         initRecyclerView()
         initClick()
     }
 
     private fun initClick() {
-        btnCriarPlaylist.setOnClickListener {
-            if(edtNome.text.toString().isNullOrEmpty()){
+        binding.btnCriarPlaylist.setOnClickListener {
+            if(binding.edtNome.text.toString().isNullOrEmpty()){
                 Toast.makeText(this, "Digite um nome para sua playlist", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            if(edtDesc.text.toString().isNullOrEmpty()){
+            if(binding.edtDesc.text.toString().isNullOrEmpty()){
                 Toast.makeText(this, "Digite uma descrição para sua playlist", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
@@ -70,8 +62,8 @@ class PlaylistForm : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val nome = edtNome.text.toString()
-            val desc = edtDesc.text.toString()
+            val nome = binding.edtNome.text.toString()
+            val desc = binding.edtDesc.text.toString()
 
             val playlist = PlaylistMusic(
                 nome,
@@ -91,12 +83,12 @@ class PlaylistForm : AppCompatActivity() {
 
     private fun initRecyclerView() {
         adapter = MusicPlaylistAdapter(this, MusicSingleton.listaMusicas, { onSelectMusic(it) }, true)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+        binding.recyclerViewMusicPlaylist.layoutManager = LinearLayoutManager(this)
+        binding.recyclerViewMusicPlaylist.adapter = adapter
     }
     private fun initToolbar(title : String) {
-        toolbar.title = title
-        setSupportActionBar(toolbar)
+        binding.toolbar.title = title
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
     private fun onSelectMusic(index : Int){
