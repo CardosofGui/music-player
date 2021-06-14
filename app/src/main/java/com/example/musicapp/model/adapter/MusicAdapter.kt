@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 
 import android.view.animation.AnimationUtils
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.R
 import com.example.musicapp.model.Music
@@ -30,8 +31,12 @@ class MusicAdapter(
         val music = listaMusicas[position]
         val view = holder.itemView
 
-        val artUri : Uri? = Uri.parse(listaMusicas[position].imagem)
-        view.imgMusicCard.setImageURI(artUri)
+        try {
+            val artUri : Uri? = Uri.parse(listaMusicas[position].imagem)
+            view.imgMusicCard.setImageURI(artUri)
+        }catch (e : Exception){
+            Toast.makeText(context, "$e", Toast.LENGTH_LONG).show()
+        }
 
         if(view.imgMusicCard.drawable == null) view.imgMusicCard.setImageResource(R.drawable.img_music)
 

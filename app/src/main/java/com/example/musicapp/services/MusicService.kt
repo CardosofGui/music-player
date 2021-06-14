@@ -92,8 +92,7 @@ class MusicService() : Service(){
         val playPendingIntent = PendingIntent.getBroadcast(this, 0, playIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
 
-        val bitmap: Bitmap?
-        bitmap = try {
+        val bitmap: Bitmap? = try {
             val picture = Uri.parse(playlistAtual[MusicSingleton.index].imagem)
             MediaStore.Images.Media.getBitmap(this.contentResolver, picture)
         }catch (e : Exception){

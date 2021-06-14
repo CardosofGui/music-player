@@ -2,6 +2,7 @@ package com.example.musicapp.view
 
 import android.content.*
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
@@ -43,6 +44,8 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val intent = Intent(this, MusicService::class.java)
+        bindService(intent, this, Context.BIND_AUTO_CREATE)
         startService(Intent(this, CloseNotification::class.java))
         startService(Intent(this, MusicService::class.java))
 
@@ -52,9 +55,6 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
         )
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
-
-        val intent = Intent(this, MusicService::class.java)
-        bindService(intent, this, Context.BIND_AUTO_CREATE)
         mMainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
         initDados()
@@ -71,7 +71,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
                     mediaPlayer.setOnCompletionListener {
                         if (!it.isPlaying) {
                             musicService?.nextMusic()
-                            mMainViewModel.atualizarDadosMusica()
+                            mMainViewModel.trocarMusica()
                             trocarIconeIniciar()
                         }
                     }
@@ -87,26 +87,23 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
         if(index != SHARED_PREFERENCES_MUSIC.getInt(SHARED_MUSIC_ACTIVE, -1)){
             index = SHARED_PREFERENCES_MUSIC.getInt(SHARED_MUSIC_ACTIVE, -1)
+
+            musicService?.clickPlayer()
         }
 
-        mMainViewModel.setListaMusica(playlistAtual)
-        mMainViewModel.nomeArtista.observe(this, Observer {
-            txtArtista.text = it
-        })
-        mMainViewModel.nomeMusica.observe(this, Observer {
-            txtMusica.text = it
-        })
-        mMainViewModel.fotoMusica.observe(this, Observer {
-            imageMusic.setImageURI(it)
+        mMainViewModel.setDados(playlistAtual)
+        mMainViewModel.musicaSelecionada.observe(this, Observer {
+            txtArtista.text = it.nomeArtista
+            txtMusica.text = it.nomeMusica
+
+            imageMusic.setImageURI(Uri.parse(it.imagem))
             if(imageMusic.drawable == null) imageMusic.setImageResource(R.drawable.img_music)
-        })
-        mMainViewModel.musicaDuration.observe(this, Observer {
-            seekMusicDuration.max = it / 1000
-            txtTimeFinish.text = formatarTime(it / 1000)
+
+            seekMusicDuration.max = (it.duration / 1000).toInt()
+            txtTimeFinish.text = formatarTime((it.duration / 1000).toInt())
         })
 
         trocarIconeIniciar()
-        mMainViewModel.atualizarDadosMusica()
 
         seekMusicDuration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -135,7 +132,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
         btnIniciaMusica.setOnClickListener {
             musicService?.clickPlayer()
-            mMainViewModel.atualizarDadosMusica()
+            mMainViewModel.trocarMusica()
             trocarIconeIniciar()
         }
 
@@ -143,7 +140,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
             animationTransition(animationTransitionRight){
                 musicService?.nextMusic()
-                mMainViewModel.atualizarDadosMusica()
+                mMainViewModel.trocarMusica()
                 trocarIconeIniciar()
             }
         }
@@ -152,7 +149,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
             animationTransition(animationTransitionLeft){
                 musicService?.previousMusic()
-                mMainViewModel.atualizarDadosMusica()
+                mMainViewModel.trocarMusica()
                 trocarIconeIniciar()
             }
         }
@@ -235,7 +232,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
     override fun onResume() {
         super.onResume()
-        mMainViewModel.atualizarDadosMusica()
+        mMainViewModel.trocarMusica()
     }
     override fun onServiceDisconnected(name: ComponentName?) {
         musicService = null

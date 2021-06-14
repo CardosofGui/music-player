@@ -41,20 +41,12 @@ class MenuInicial : AppCompatActivity() {
             val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
 
             bottomNav.setupWithNavController(navController)
-            //initToolbar("Músicas")
         }catch(e : Exception){
             Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
         }
     }
 
-    /*
-    private fun initToolbar(title : String) {
-        toolbar.title = title
-        setSupportActionBar(toolbar)
-    }
-     */
-
-    fun getMusic2() {
+    fun getMusic() {
         MediaFacer
             .withAudioContex(this)
             .getAllAudioContent(AudioGet.externalContentUri).forEachIndexed { index, music ->
@@ -107,7 +99,7 @@ class MenuInicial : AppCompatActivity() {
                         if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
                                 Toast.makeText(this, "Permissao aceita", Toast.LENGTH_SHORT).show()
                             try {
-                                getMusic2()
+                                getMusic()
                             }catch (e : Exception){
                                 Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
                             }
@@ -134,7 +126,7 @@ class MenuInicial : AppCompatActivity() {
             }else{
                 Toast.makeText(this, "Permissao aceita", Toast.LENGTH_SHORT).show()
                 try {
-                    getMusic2()
+                    getMusic()
 
                 }catch (e : Exception){
                     Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
