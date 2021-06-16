@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.R
@@ -18,15 +19,10 @@ import com.example.musicapp.model.adapter.MusicPlaylistAdapter
 import com.example.musicapp.model.singleton.MusicSingleton
 import com.example.musicapp.model.singleton.MusicSingleton.playlistMusicas
 import com.google.gson.Gson
+import java.util.*
 
 class PlaylistViewer : AppCompatActivity() {
 
-    private lateinit var recyclerView : RecyclerView
-    private lateinit var imagePlaylist : ImageView
-    private lateinit var nomePlaylist : TextView
-    private lateinit var descPlaylist : TextView
-    private lateinit var contagemMusicas : TextView
-    private lateinit var toolbar : Toolbar
 
     lateinit var adapter : MusicPlaylistAdapter
 
@@ -36,6 +32,8 @@ class PlaylistViewer : AppCompatActivity() {
     lateinit var playlistSelecionada : PlaylistMusic
 
     private lateinit var binding : ActivityPlaylistViewerBinding
+    private lateinit var itemTouchHelper: ItemTouchHelper
+    private var indexPlaylist : Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,23 +47,21 @@ class PlaylistViewer : AppCompatActivity() {
         )
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
-        recyclerView = findViewById(R.id.recyclerViewMusics)
-        imagePlaylist = findViewById(R.id.imgPlaylist)
-        nomePlaylist = findViewById(R.id.txtNomePlaylist)
-        toolbar = findViewById(R.id.toolbar)
+        itemTouchHelper = ItemTouchHelper(simpleCallback)
+        itemTouchHelper.attachToRecyclerView(binding.recyclerViewMusics)
 
         initDados()
     }
 
+
     private fun initDados() {
-        val indexPlaylist = intent.getIntExtra("INDEX-PLAYLIST", 0)
-        playlistSelecionada = playlistMusicas[indexPlaylist]
+        indexPlaylist = intent.getIntExtra("INDEX-PLAYLIST", 0)
+        playlistSelecionada = playlistMusicas[indexPlaylist ?: 0]
 
         initToolbar("Playlist")
         val artUri : Uri? = Uri.parse(playlistSelecionada.playlist[0].imagem)
-        imagePlaylist.setImageURI(artUri)
-        nomePlaylist.text = playlistSelecionada.nomePlaylist
-
+        binding.imgPlaylist.setImageURI(artUri)
+        binding.txtNomePlaylist.text = playlistSelecionada.nomePlaylist
 
 
         initRecyclerView()
@@ -73,8 +69,8 @@ class PlaylistViewer : AppCompatActivity() {
 
     private fun initRecyclerView() {
         adapter = MusicPlaylistAdapter(this, playlistSelecionada.playlist, { onSelectMusic(it) })
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+        binding.recyclerViewMusics.layoutManager = LinearLayoutManager(this)
+        binding.recyclerViewMusics.adapter = adapter
     }
 
     private fun onSelectMusic(it: Int) {
@@ -88,8 +84,8 @@ class PlaylistViewer : AppCompatActivity() {
     }
 
     private fun initToolbar(title : String) {
-        toolbar.title = title
-        setSupportActionBar(toolbar)
+        binding.toolbar.title = title
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
@@ -101,6 +97,34 @@ class PlaylistViewer : AppCompatActivity() {
                 return false
             }
             else -> return false
+        }
+    }
+
+    private val simpleCallback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.START or ItemTouchHelper.END, 0){
+        override fun onMove(
+            recyclerView: RecyclerView,
+            viewHolder: RecyclerView.ViewHolder,
+            target: RecyclerView.ViewHolder
+        ): Boolean {
+            val fromPosition = viewHolder.adapterPosition
+            val toPosition = target.adapterPosition
+
+            Collections.swap(playlistSelecionada.playlist, fromPosition, toPosition)
+            recyclerView.adapter?.notifyItemMoved(toPosition, fromPosition)
+
+
+            playlistMusicas[indexPlaylist ?: 0] = playlistSelecionada
+            val gson = Gson()
+            val jsonPlaylists = gson.toJson(playlistMusicas)
+
+            SHARED_PREFERENCES_MUSIC_EDITOR.putString(MenuInicial.SHARED_PLAYLISTS, jsonPlaylists).commit()
+
+            playlistSelecionada = playlistMusicas[indexPlaylist ?: 0]
+            return false
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+
         }
     }
 }
