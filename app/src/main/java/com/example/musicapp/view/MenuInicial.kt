@@ -7,16 +7,21 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.CodeBoy.MediaFacer.AudioGet
 import com.CodeBoy.MediaFacer.MediaFacer
 import com.example.musicapp.R
+import com.example.musicapp.databinding.ActivityListMusicsBinding
 import com.example.musicapp.model.Music
 import com.example.musicapp.model.PlaylistMusic
 import com.example.musicapp.model.singleton.MusicSingleton
 import com.example.musicapp.model.singleton.MusicSingleton.listaMusicas
 import com.example.musicapp.model.singleton.MusicSingleton.playlistMusicas
+import com.example.musicapp.view.fragments.FavoriteList
+import com.example.musicapp.view.fragments.MusicList
+import com.example.musicapp.view.fragments.PlaylistList
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -28,26 +33,46 @@ class MenuInicial : AppCompatActivity() {
 
     var myPermissionRequest = 1
 
+    private lateinit var binding : ActivityListMusicsBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_list__musics)
+        binding = ActivityListMusicsBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
-        try {
-            SHARED_PREFERENCES_MUSIC = getSharedPreferences(SHARED_MAIN, MODE_PRIVATE)
-            SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
-            verificarPermissao()
+        SHARED_PREFERENCES_MUSIC = getSharedPreferences(SHARED_MAIN, MODE_PRIVATE)
+        SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
-            val navController = findNavController(R.id.fragment_container)
-            val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+        initToolbar("Músicas")
+        verificarPermissao()
 
-            bottomNav.setupWithNavController(navController)
-        }catch(e : Exception){
-            Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
+        binding.bottomNav.setOnNavigationItemSelectedListener { item ->
+            when(item.itemId){
+                R.id.musicList->{
+                    switchFragment(MusicList())
+                    initToolbar("Músicas")
+                    true
+                }
+                R.id.favoriteList->{
+                    switchFragment(FavoriteList())
+                    initToolbar("Favoritas")
+                    true
+                }
+                R.id.playlistList->{
+                    switchFragment(PlaylistList())
+                    initToolbar("Playlists")
+                    true
+                }
+                else->false
+            }
         }
     }
 
-    fun getMusic() {
+    private fun getMusic() {
+        if(listaMusicas.size > 0) listaMusicas.clear()
+
         MediaFacer
             .withAudioContex(this)
             .getAllAudioContent(AudioGet.externalContentUri).forEachIndexed { index, music ->
@@ -151,6 +176,18 @@ class MenuInicial : AppCompatActivity() {
         }catch (e : Exception){
             Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun switchFragment(fragment : Fragment){
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .commit()
+    }
+
+    private fun initToolbar(title : String) {
+        binding.toolbar.title = title
+        setSupportActionBar(binding.toolbar)
     }
 
     companion object{

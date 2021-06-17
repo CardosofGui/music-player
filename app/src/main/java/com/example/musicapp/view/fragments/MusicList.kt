@@ -97,6 +97,11 @@ class MusicList : Fragment() {
         binding.recyclerViewMusics.adapter = adapter
     }
 
+    override fun onResume() {
+        super.onResume()
+        adapter.notifyDataSetChanged()
+    }
+
     companion object {
         /**
          * Use this factory method to create a new instance of

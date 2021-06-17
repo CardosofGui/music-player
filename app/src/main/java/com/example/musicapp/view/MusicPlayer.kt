@@ -248,12 +248,12 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
         Log.e("conexao", "coneceted")
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
+        return when(item.itemId){
             android.R.id.home -> {
                 onBackPressed()
-                return false
+                false
             }
-            else -> return false
+            else -> false
         }
     }
 

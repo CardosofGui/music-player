@@ -8,6 +8,13 @@
     android:orientation="vertical"
     tools:context=".view.MenuInicial">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#121212"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark"
+        app:titleTextColor="@color/white" />
 
     <fragment
         android:id="@+id/fragment_container"
