@@ -45,6 +45,7 @@ class MenuInicial : AppCompatActivity() {
         SHARED_PREFERENCES_MUSIC = getSharedPreferences(SHARED_MAIN, MODE_PRIVATE)
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
+        switchFragment(MusicList())
         initToolbar("Músicas")
         verificarPermissao()
 
@@ -181,6 +182,7 @@ class MenuInicial : AppCompatActivity() {
     private fun switchFragment(fragment : Fragment){
         supportFragmentManager
             .beginTransaction()
+            .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
             .replace(R.id.fragment_container, fragment)
             .commit()
     }

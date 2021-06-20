@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
@@ -34,6 +35,7 @@ class PlaylistViewer : AppCompatActivity() {
     private lateinit var binding : ActivityPlaylistViewerBinding
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var indexPlaylist : Int? = null
+    private var menuAction : Menu? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,6 +98,10 @@ class PlaylistViewer : AppCompatActivity() {
                 finish()
                 return false
             }
+            R.id.itemAtualizarPlaylist ->{
+                updatePlaylist()
+                return false
+            }
             else -> return false
         }
     }
@@ -112,19 +118,41 @@ class PlaylistViewer : AppCompatActivity() {
             Collections.swap(playlistSelecionada.playlist, fromPosition, toPosition)
             recyclerView.adapter?.notifyItemMoved(toPosition, fromPosition)
 
+            if(menuAction?.findItem(R.id.itemAtualizarPlaylist)?.isVisible == false){
+                menuAction?.findItem(R.id.itemAtualizarPlaylist)?.isVisible = true
+            }
 
-            playlistMusicas[indexPlaylist ?: 0] = playlistSelecionada
-            val gson = Gson()
-            val jsonPlaylists = gson.toJson(playlistMusicas)
-
-            SHARED_PREFERENCES_MUSIC_EDITOR.putString(MenuInicial.SHARED_PLAYLISTS, jsonPlaylists).commit()
-
-            playlistSelecionada = playlistMusicas[indexPlaylist ?: 0]
             return false
         }
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
 
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val menuInflater = menuInflater
+        menuInflater.inflate(R.menu.menu_save, menu)
+        menuAction = menu
+
+        menu?.findItem(R.id.itemAtualizarPlaylist)?.isVisible = false
+
+        return super.onCreateOptionsMenu(menu)
+    }
+
+
+    private fun updatePlaylist(){
+        playlistMusicas[indexPlaylist ?: 0] = playlistSelecionada
+        val gson = Gson()
+        val jsonPlaylists = gson.toJson(playlistMusicas)
+
+        SHARED_PREFERENCES_MUSIC_EDITOR.putString(MenuInicial.SHARED_PLAYLISTS, jsonPlaylists).commit()
+
+        playlistSelecionada = playlistMusicas[indexPlaylist ?: 0]
+        val artUri : Uri? = Uri.parse(playlistSelecionada.playlist[0].imagem)
+        binding.imgPlaylist.setImageURI(artUri)
+        adapter.notifyDataSetChanged()
+
+        menuAction?.findItem(R.id.itemAtualizarPlaylist)?.isVisible = false
     }
 }
