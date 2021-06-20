@@ -13,7 +13,8 @@ import com.example.musicapp.model.PlaylistMusic
 class PlaylistAdapter(
     val context : Context,
     val listaPlaylists : ArrayList<PlaylistMusic>,
-    val onClickPlaylist : ((Int) -> Unit)
+    val onClickPlaylist : ((Int) -> Unit),
+    val onPressPlaylist : ((Int) -> Unit)
 ) : RecyclerView.Adapter<PlaylistViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaylistViewHolder {
@@ -38,6 +39,12 @@ class PlaylistAdapter(
         binding.cardPlaylist.setOnClickListener {
             binding.cardPlaylist.startAnimation(animation)
             onClickPlaylist(position)
+        }
+
+        binding.cardPlaylist.setOnLongClickListener {
+            binding.cardPlaylist.startAnimation(animation)
+            onPressPlaylist(position)
+            return@setOnLongClickListener true
         }
     }
 }

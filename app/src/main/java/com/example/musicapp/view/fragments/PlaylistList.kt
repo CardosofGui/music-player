@@ -1,5 +1,6 @@
 package com.example.musicapp.view.fragments
 
+import android.app.Dialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -7,13 +8,19 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.R
 import com.example.musicapp.databinding.FragmentPlaylistListBinding
+import com.example.musicapp.model.PlaylistMusic
 import com.example.musicapp.model.adapter.PlaylistAdapter
 import com.example.musicapp.model.singleton.MusicSingleton
+import com.example.musicapp.model.singleton.MusicSingleton.playlistMusicas
 import com.example.musicapp.view.MenuInicial
 import com.example.musicapp.view.MusicPlayer
 import com.example.musicapp.view.PlaylistForm
@@ -72,9 +79,13 @@ class PlaylistList : Fragment() {
     }
 
     private fun initRecyclerView() {
-        adapter = PlaylistAdapter(requireContext(), MusicSingleton.playlistMusicas) {onClickPlaylist(it)}
+        adapter = PlaylistAdapter(requireContext(), MusicSingleton.playlistMusicas, {onClickPlaylist(it)}, {onPressPlaylist(it)}) 
         binding.recyclerViewPlaylist.layoutManager = GridLayoutManager(this.context, 2)
         binding.recyclerViewPlaylist.adapter = adapter
+    }
+
+    private fun onPressPlaylist(it: Int) {
+        showDialog(it)
     }
 
     private fun initClick() {
@@ -88,6 +99,54 @@ class PlaylistList : Fragment() {
         intent.putExtra("INDEX-PLAYLIST", index)
 
         startActivity(intent)
+    }
+
+    private fun showDialog(index: Int) {
+        val playlist = playlistMusicas[index]
+
+        val dialog = Dialog(requireActivity())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(false)
+        dialog.setContentView(R.layout.edit_popup)
+
+        val edtNomePlaylist = dialog.findViewById<EditText>(R.id.edtNomePlaylist)
+        val edtDescPlaylist = dialog.findViewById<EditText>(R.id.edtDescPlaylist)
+        val btnCancelar = dialog.findViewById<Button>(R.id.btnCancelar)
+        val btnEditar = dialog.findViewById<Button>(R.id.btnEditar)
+        val btnExcluir = dialog.findViewById<Button>(R.id.btnExcluir)
+
+        edtNomePlaylist.setText(playlist.nomePlaylist)
+        edtDescPlaylist.setText(playlist.descPlaylist)
+
+        btnCancelar.setOnClickListener {
+            dialog.dismiss()
+        }
+        btnEditar.setOnClickListener {
+            if(edtNomePlaylist.text.toString().isNullOrEmpty() || edtDescPlaylist.text.toString().isNullOrEmpty()){
+                Toast.makeText(context, "Erro - Todos os campos devem ser preenchidos", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+
+            val nomePlaylist = edtNomePlaylist.text.toString()
+            val descPlaylist = edtDescPlaylist.text.toString()
+
+            playlistMusicas[index].nomePlaylist = nomePlaylist
+            playlistMusicas[index].descPlaylist = descPlaylist
+
+            val jsonPlaylists = Gson().toJson(playlistMusicas)
+            SHARED_PREFERENCES_MUSIC_EDITOR.putString(MenuInicial.SHARED_PLAYLISTS, jsonPlaylists).commit()
+            adapter.notifyDataSetChanged()
+            dialog.dismiss()
+        }
+        btnExcluir.setOnClickListener {
+            playlistMusicas.removeAt(index)
+            val jsonPlaylists = Gson().toJson(playlistMusicas)
+            SHARED_PREFERENCES_MUSIC_EDITOR.putString(MenuInicial.SHARED_PLAYLISTS, jsonPlaylists).commit()
+            adapter.notifyDataSetChanged()
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     override fun onResume() {
