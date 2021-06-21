@@ -9,6 +9,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.CodeBoy.MediaFacer.AudioGet
 import com.CodeBoy.MediaFacer.MediaFacer
@@ -45,30 +47,22 @@ class MenuInicial : AppCompatActivity() {
         SHARED_PREFERENCES_MUSIC = getSharedPreferences(SHARED_MAIN, MODE_PRIVATE)
         SHARED_PREFERENCES_MUSIC_EDITOR = SHARED_PREFERENCES_MUSIC.edit()
 
-        switchFragment(MusicList())
         initToolbar("Músicas")
+        initBottomNavigation()
         verificarPermissao()
+    }
 
-        binding.bottomNav.setOnNavigationItemSelectedListener { item ->
-            when(item.itemId){
-                R.id.musicList->{
-                    switchFragment(MusicList())
-                    initToolbar("Músicas")
-                    true
-                }
-                R.id.favoriteList->{
-                    switchFragment(FavoriteList())
-                    initToolbar("Favoritas")
-                    true
-                }
-                R.id.playlistList->{
-                    switchFragment(PlaylistList())
-                    initToolbar("Playlists")
-                    true
-                }
-                else->false
-            }
-        }
+    private fun initBottomNavigation() {
+        val appBar = AppBarConfiguration(
+            setOf(
+                R.id.musicList,
+                R.id.favoriteList,
+                R.id.playlistList
+            )
+        )
+
+        setupActionBarWithNavController(findNavController(R.id.fragment_container), appBar)
+        binding.bottomNav.setupWithNavController(findNavController(R.id.fragment_container))
     }
 
     private fun getMusic() {
@@ -96,12 +90,12 @@ class MenuInicial : AppCompatActivity() {
 
         if(playlistsJson != ""){
             val playlistsArray = gson.fromJson<ArrayList<PlaylistMusic>>(playlistsJson, object : TypeToken<ArrayList<PlaylistMusic>>(){}.type)
-            playlistMusicas = playlistsArray
+            if(!playlistsArray.isNullOrEmpty()) playlistMusicas = playlistsArray
         }
 
         if(!listMusics.isNullOrEmpty()){
             val verificarFavoritos = gson.fromJson<ArrayList<Music>>(listMusics, object : TypeToken<ArrayList<Music>>(){}.type)
-
+            if(verificarFavoritos.isNullOrEmpty()) return
 
             verificarFavoritos.forEach { musicSelecionada ->
                 var musicaExistente = false
@@ -177,14 +171,6 @@ class MenuInicial : AppCompatActivity() {
         }catch (e : Exception){
             Toast.makeText(this, "$e", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun switchFragment(fragment : Fragment){
-        supportFragmentManager
-            .beginTransaction()
-            .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-            .replace(R.id.fragment_container, fragment)
-            .commit()
     }
 
     private fun initToolbar(title : String) {
