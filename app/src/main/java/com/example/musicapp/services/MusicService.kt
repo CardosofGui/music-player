@@ -20,10 +20,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.musicapp.R
 import com.example.musicapp.application.MusicApplication
+import com.example.musicapp.model.ActionClick
 import com.example.musicapp.view.MenuInicial
 import com.example.musicapp.view.MusicPlayer
 import com.example.musicapp.model.singleton.MusicSingleton
 import com.example.musicapp.model.singleton.MusicSingleton.playlistAtual
+import com.example.musicapp.view.MusicPlayer.Companion.mediaPlayer
 import java.lang.Exception
 
 class MusicService() : Service(){
@@ -31,6 +33,8 @@ class MusicService() : Service(){
 
     lateinit var SHARED_PREFERENCES_MUSIC: SharedPreferences
     lateinit var SHARED_PREFERENCES_MUSIC_EDITOR: SharedPreferences.Editor
+
+    var actionClick : ActionClick? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -58,13 +62,13 @@ class MusicService() : Service(){
         if(actionName != null){
             when(actionName){
                 MusicApplication.ACTION_PLAY -> {
-                    clickPlayer()
+                    actionClick?.clickPlayer()
                 }
                 MusicApplication.ACTION_NEXT -> {
-                    nextMusic()
+                    actionClick?.nextMusic()
                 }
                 MusicApplication.ACTION_PREVIOUS -> {
-                    previousMusic()
+                    actionClick?.previousMusic()
                 }
             }
             return START_STICKY
@@ -122,85 +126,16 @@ class MusicService() : Service(){
             .build()
 
         val notificationManager : NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(0, notification)
+        notificationManager.notify(1, notification)
+        startForeground(1, notification)
     }
-    fun clickPlayer() {
-        if(MusicPlayer.mediaPlayer.isPlaying){
-            MusicPlayer.mediaPlayer.pause()
-            showNotifications(R.drawable.ic_baseline_play_circle_filled_24)
-        }else{
-            val uri = Uri.parse(playlistAtual[MusicSingleton.index].diretorio)
-            MusicPlayer.mediaPlayer = MediaPlayer.create(baseContext, uri)
-            MusicPlayer.mediaPlayer.seekTo(MusicSingleton.tempoPause *1000)
-            MusicPlayer.mediaPlayer.start()
-            showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
-        }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
 
-
-        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(
-            MenuInicial.SHARED_MUSIC_ACTIVE,
-            MusicSingleton.index
-        ).commit()
-    }
-    fun nextMusic() {
-        if(!MusicSingleton.repeatMusic){
-            if(MusicSingleton.shuffleOn){
-                MusicSingleton.index = (0 until playlistAtual.size).random()
-            }else{
-                MusicSingleton.index++
-
-                if(MusicSingleton.index >= playlistAtual.size){
-                    MusicSingleton.index = 0
-                }
-            }
-        }
-
-        if(MusicPlayer.mediaPlayer.isPlaying){
-            MusicPlayer.mediaPlayer.pause()
-            MusicPlayer.mediaPlayer.release()
-        }
-
-        val uri = Uri.parse(playlistAtual[MusicSingleton.index].diretorio)
-        MusicPlayer.mediaPlayer = MediaPlayer.create(this, uri)
-        MusicPlayer.mediaPlayer.start()
-        showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
-
-
-        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(
-            MenuInicial.SHARED_MUSIC_ACTIVE,
-            MusicSingleton.index
-        ).commit()
-    }
-    fun previousMusic() {
-        if(!MusicSingleton.repeatMusic){
-            if(MusicSingleton.shuffleOn){
-                MusicSingleton.index = (0 until playlistAtual.size).random()
-            }else{
-                MusicSingleton.index++
-
-                if(MusicSingleton.index < 0){
-                    MusicSingleton.index = 0
-                }
-            }
-        }
-
-
-        if(MusicPlayer.mediaPlayer.isPlaying){
-            MusicPlayer.mediaPlayer.pause()
-            MusicPlayer.mediaPlayer.release()
-        }
-
-        val uri = Uri.parse(playlistAtual[MusicSingleton.index].diretorio)
-        MusicPlayer.mediaPlayer = MediaPlayer.create(this, uri)
-        MusicPlayer.mediaPlayer.start()
-        showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
-
-
-        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(
-            MenuInicial.SHARED_MUSIC_ACTIVE,
-            MusicSingleton.index
-        ).commit()
+        stopForeground(true)
+        mediaPlayer.release()
+        stopSelf()
     }
 }
 

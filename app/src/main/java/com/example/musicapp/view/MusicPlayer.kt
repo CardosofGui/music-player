@@ -17,21 +17,25 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.musicapp.services.CloseNotification
 import com.example.musicapp.services.MusicService
 import com.example.musicapp.R
+import com.example.musicapp.application.MusicApplication
 import com.example.musicapp.databinding.ActivityMainBinding
+import com.example.musicapp.model.ActionClick
 import com.example.musicapp.view.MenuInicial.Companion.SHARED_LIST_MUSIC_ACTIVE
 import com.example.musicapp.view.MenuInicial.Companion.SHARED_MUSIC_ACTIVE
 import com.example.musicapp.viewmodel.MainViewModel
 import com.example.musicapp.model.Music
+import com.example.musicapp.model.singleton.MusicSingleton
 import com.example.musicapp.model.singleton.MusicSingleton.index
 import com.example.musicapp.model.singleton.MusicSingleton.playlistAtual
 import com.example.musicapp.model.singleton.MusicSingleton.repeatMusic
 import com.example.musicapp.model.singleton.MusicSingleton.shuffleOn
 import com.example.musicapp.model.singleton.MusicSingleton.tempoPause
+import com.example.musicapp.services.NotificationReceiver
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 
-class MusicPlayer : AppCompatActivity(), ServiceConnection {
+class MusicPlayer : AppCompatActivity(), ServiceConnection, ActionClick {
 
     lateinit var mMainViewModel: MainViewModel
     lateinit var SHARED_PREFERENCES_MUSIC: SharedPreferences
@@ -40,7 +44,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
     var handler: Handler = Handler()
     var musicService: MusicService? = null
 
-    private lateinit var binding : ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,8 +54,6 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
         val intent = Intent(this, MusicService::class.java)
         bindService(intent, this, Context.BIND_AUTO_CREATE)
-        startService(Intent(this, CloseNotification::class.java))
-        startService(Intent(this, MusicService::class.java))
 
         SHARED_PREFERENCES_MUSIC = getSharedPreferences(
             MenuInicial.SHARED_MAIN,
@@ -74,7 +76,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
                     mediaPlayer.setOnCompletionListener {
                         if (!it.isPlaying) {
-                            musicService?.nextMusic()
+                            nextMusic()
                             mMainViewModel.trocarMusica()
                             trocarIconeIniciar()
                         }
@@ -87,12 +89,13 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
     private fun initDados() {
         val gson = Gson()
-        playlistAtual = gson.fromJson(SHARED_PREFERENCES_MUSIC.getString(SHARED_LIST_MUSIC_ACTIVE, ""), object : TypeToken<ArrayList<Music>>(){}.type)
+        playlistAtual = gson.fromJson(
+            SHARED_PREFERENCES_MUSIC.getString(SHARED_LIST_MUSIC_ACTIVE, ""),
+            object : TypeToken<ArrayList<Music>>() {}.type
+        )
 
-        if(index != SHARED_PREFERENCES_MUSIC.getInt(SHARED_MUSIC_ACTIVE, -1)){
+        if (index != SHARED_PREFERENCES_MUSIC.getInt(SHARED_MUSIC_ACTIVE, -1)) {
             index = SHARED_PREFERENCES_MUSIC.getInt(SHARED_MUSIC_ACTIVE, -1)
-
-            musicService?.clickPlayer()
         }
 
         mMainViewModel.setDados(playlistAtual)
@@ -101,7 +104,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
             binding.txtMusica.text = it.nomeMusica
 
             binding.imageMusic.setImageURI(Uri.parse(it.imagem))
-            if(binding.imageMusic.drawable == null) binding.imageMusic.setImageResource(R.drawable.img_music)
+            if (binding.imageMusic.drawable == null) binding.imageMusic.setImageResource(R.drawable.img_music)
 
             binding.seekMusicDuration.max = (it.duration / 1000).toInt()
             binding.txtTimeFinish.text = formatarTime((it.duration / 1000).toInt())
@@ -109,7 +112,8 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
         trocarIconeIniciar()
 
-        binding.seekMusicDuration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        binding.seekMusicDuration.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (mediaPlayer.isPlaying && fromUser) {
                     mediaPlayer.seekTo(progress * 1000)
@@ -135,26 +139,29 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
 
 
         binding.btnIniciaMusica.setOnClickListener {
-            musicService?.clickPlayer()
-            mMainViewModel.trocarMusica()
-            trocarIconeIniciar()
+            Intent(this, NotificationReceiver::class.java).also { intent ->
+                intent.action = MusicApplication.ACTION_PLAY
+                sendBroadcast(intent)
+            }
         }
 
         binding.btnProximaMusica.setOnClickListener {
 
-            animationTransition(animationTransitionRight){
-                musicService?.nextMusic()
-                mMainViewModel.trocarMusica()
-                trocarIconeIniciar()
+            animationTransition(animationTransitionRight) {
+                Intent(this, NotificationReceiver::class.java).also { intent ->
+                    intent.action = MusicApplication.ACTION_NEXT
+                    sendBroadcast(intent)
+                }
             }
         }
 
         binding.btnVoltarMusica.setOnClickListener {
 
-            animationTransition(animationTransitionLeft){
-                musicService?.previousMusic()
-                mMainViewModel.trocarMusica()
-                trocarIconeIniciar()
+            animationTransition(animationTransitionLeft) {
+                Intent(this, NotificationReceiver::class.java).also { intent ->
+                    intent.action = MusicApplication.ACTION_PREVIOUS
+                    sendBroadcast(intent)
+                }
             }
         }
 
@@ -168,6 +175,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
             trocarIconeIniciar()
         }
     }
+
     private fun animationTransition(
         animationTransition: Animation,
         function: () -> Unit
@@ -195,6 +203,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
             }
         })
     }
+
     private fun formatarTime(time: Int): String {
         var totalOut = ""
         var totalNew = ""
@@ -209,6 +218,7 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
             return totalOut
         }
     }
+
     private fun trocarIconeIniciar() {
         if (mediaPlayer.isPlaying) {
             binding.btnIniciaMusica.setImageResource(R.drawable.ic_baseline_pause_circle_filled_24)
@@ -216,39 +226,134 @@ class MusicPlayer : AppCompatActivity(), ServiceConnection {
             binding.btnIniciaMusica.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
         }
 
-        if(shuffleOn){
+        if (shuffleOn) {
             binding.btnShuffleMusic.setImageResource(R.drawable.ic_baseline_shuffle_clicked_24)
-        }else{
+        } else {
             binding.btnShuffleMusic.setImageResource(R.drawable.ic_baseline_shuffle_24)
         }
 
-        if(repeatMusic){
+        if (repeatMusic) {
             binding.btnRepeatMusic.setImageResource(R.drawable.ic_baseline_repeat_clicked)
-        }else{
+        } else {
             binding.btnRepeatMusic.setImageResource(R.drawable.ic_baseline_repeat_24)
         }
     }
-    private fun initToolbar(title : String) {
+
+    private fun initToolbar(title: String) {
         binding.toolbar.title = title
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    override fun clickPlayer() {
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.pause()
+            musicService?.showNotifications(R.drawable.ic_baseline_play_circle_filled_24)
+        } else {
+            val uri = Uri.parse(playlistAtual[index].diretorio)
+            mediaPlayer = MediaPlayer.create(baseContext, uri)
+            mediaPlayer.seekTo(MusicSingleton.tempoPause * 1000)
+            mediaPlayer.start()
+            musicService?.showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
+        }
+
+
+
+        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(
+            SHARED_MUSIC_ACTIVE,
+            index
+        ).commit()
+
+        mMainViewModel.trocarMusica()
+        trocarIconeIniciar()
+    }
+
+    override fun nextMusic() {
+        if (!repeatMusic) {
+            if (shuffleOn) {
+                index = (0 until playlistAtual.size).random()
+            } else {
+                index++
+
+                if (index >= playlistAtual.size) {
+                    index = 0
+                }
+            }
+        }
+
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.pause()
+            mediaPlayer.release()
+        }
+
+        val uri = Uri.parse(playlistAtual[index].diretorio)
+        mediaPlayer = MediaPlayer.create(this, uri)
+        mediaPlayer.start()
+        musicService?.showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
+
+
+        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(
+            SHARED_MUSIC_ACTIVE,
+            index
+        ).commit()
+
+        mMainViewModel.trocarMusica()
+        trocarIconeIniciar()
+    }
+
+    override fun previousMusic() {
+        if (!repeatMusic) {
+            if (shuffleOn) {
+                index = (0 until playlistAtual.size).random()
+            } else {
+                index++
+
+                if (index < 0) {
+                    index = 0
+                }
+            }
+        }
+
+
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.pause()
+            mediaPlayer.release()
+        }
+
+        val uri = Uri.parse(playlistAtual[index].diretorio)
+        mediaPlayer = MediaPlayer.create(this, uri)
+        mediaPlayer.start()
+        musicService?.showNotifications(R.drawable.ic_baseline_pause_circle_filled_24)
+
+
+        SHARED_PREFERENCES_MUSIC_EDITOR.putInt(
+            SHARED_MUSIC_ACTIVE,
+            index
+        ).commit()
+
+        mMainViewModel.trocarMusica()
+        trocarIconeIniciar()
     }
 
     override fun onResume() {
         super.onResume()
         mMainViewModel.trocarMusica()
     }
+
     override fun onServiceDisconnected(name: ComponentName?) {
         musicService = null
         Log.e("conexao", "coneceted")
     }
+
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         val binder = service as MusicService.MyBinder
         musicService = binder.getService()
+        musicService?.actionClick = this
         Log.e("conexao", "coneceted")
     }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when(item.itemId){
+        return when (item.itemId) {
             android.R.id.home -> {
                 onBackPressed()
                 false
